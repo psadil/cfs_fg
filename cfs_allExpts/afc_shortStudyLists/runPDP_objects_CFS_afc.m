@@ -133,6 +133,7 @@ p.frame_dur = p.ifi*1000; %frame duration in ms %~16.67ms;
 % font parameters --------------------------------------
 p.fontSize = 24;
 p.textColor = [255 255 255]; %p.LUT(end,:);  % white
+p.wordStimFont = 48;
 
 % set up the font
 Screen('TextFont',p.window, 'Arial');
@@ -161,8 +162,7 @@ p.root = pwd;
 [p, trialsStudy, traialsTest, trialsPracticeStudy, trialsPracticeTest] = createStimSequence(p);
 
 %%  some other parameters we need for break
-p.break = 10; %15 sec forced break
-
+p.break = 5; %secs of forced break
 
 
 %% begin practice phase
@@ -175,7 +175,6 @@ if p.practice
     
 end
 
-p;
 
 %% set up necessary directories
 
@@ -233,8 +232,3 @@ end
 save(fName, 'p');
 
 sca
-
-
-% % save demographics file
-% demoFile = fopen('Demographics.txt');
-% demog = textscan(demoFile,text);

@@ -16,6 +16,8 @@ admin -> useful files for working with RAs (including consent forms)
 analysisCode -> MATLAB and R files for working with subjectData
 cfs_allExpts -> the actual experimental files
 
+NOTE: due to lack of binary files (i.e., the stimuli), these DO NOT contain
+   all of the necessary files to actually run the experiments.
 
 ***************************************************************************
 

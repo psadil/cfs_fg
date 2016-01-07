@@ -105,64 +105,6 @@ if ismember(p.stereoMode,[4 10])
     [p.leftRect, p.rightRect] = adjustVergence(p.window,p.leftRect,p.rightRect);
 end
 
-% p.texAlpha = [logspace(log10(1),log10(80),p.hzRate) 80*ones(1,p.hzRate*4) , zeros(1,p.hzRate)];
-% p.texAlpha = [zeros(1,p.hzRate*2) , logspace(log10(1),log10(100),p.hzRate*3) , 100*ones(1,p.hzRate*3) , logspace(log10(100),log10(1),p.hzRate) , zeros(1,p.hzRate)];
-% p.texAlpha = [zeros(1,p.hzRate) , logspace(log10(1),log10(100),p.hzRate) , 100*ones(1,p.hzRate) , logspace(log10(100),log10(1),p.hzRate) , zeros(1,p.hzRate)];
-
-% old one that was used
-p.texAlpha = table([0, 50, 100, 50, 0], ...
-    [0:30:90, ones(1,3)*100, 60:-30:0], ...
-    [0:20:80, ones(1,5)*100, 80:-20:0], ...
-    [0:20:80, ones(1,10)*100, 80:-20:0]);
-    
-% p.texAlpha = table([logspace(log10(1),log10(80),5), ones(1,5)*100, logspace(log10(80),log10(1),5)], ...
-%     [logspace(log10(1),log10(80),5), ones(1,10)*100, logspace(log10(80),log10(1),5)], ...
-%     [logspace(log10(1),log10(80),5), ones(1,15)*100, logspace(log10(80),log10(1),5)], ...
-%     [logspace(log10(1),log10(80),5), ones(1,20)*100, logspace(log10(8),log10(1),5)]);
-
-p.texAlpha.Properties.VariableNames{'Var1'} = 'secs_p_five';
-p.texAlpha.Properties.VariableNames{'Var2'} = 'secs_one';
-p.texAlpha.Properties.VariableNames{'Var3'} = 'secs_1p_five';
-p.texAlpha.Properties.VariableNames{'Var4'} = 'secs_two';
-
-
-
-% p.texAlpha = [0:10:80 ones(1,2)*90 80:-10:0];
-%% I don't understand what this function does or why it would be needed...
-% Luckily, we're working with a stereoMode that doesn't appear to need it's
-% vergence adjusted!
-    function [p] = adjustVergence(p)
-        
-        flipper = Screen('Flip',p.window);
-        
-        for tick=1:10000
-            Screen('SelectStereoDrawBuffer',p,window,0);
-            Screen('FillRect',p.window,p.colors(:,:,mod(tick,30)+1),p.mondrians(:,:,mod(tick,30)+1)+repmat([p.leftRect(1:2)';p.leftRect(1:2)'],[1,p.numSuppressors,1]));
-            Screen('FrameRect',p.window,255,p.leftRect,50);
-            Screen('SelectStereoDrawBuffer',p.window,1);
-            Screen('FrameRect',p.window,255,p.rightRect,50);
-            flipper = Screen(p.window,'Flip', flipper+1/p.hzRate);
-            [keyPressed, ~, keyCode] = KbCheck(-1);
-            if keyPressed
-                switch find(keyCode,1)
-                    case KbName('Space')
-                        break;
-                    case KbName('LeftArrow')
-                        p.leftRect = p.leftRect+[-1 0 -1 0];
-                        p.rightRect = p.rightRect+[1 0 1 0];
-                    case KbName('RightArrow')
-                        p.leftRect = p.leftRect+[1 0 1 0];
-                        p.rightRect = p.rightRect+[-1 0 -1 0];
-                    case KbName('UpArrow')
-                        p.leftRect = p.leftRect+[0 1 0 1];
-                        p.rightRect = p.rightRect+[0 -1 0 -1];
-                    case KbName('DownArrow')
-                        p.leftRect = p.leftRect+[0 -1 0 -1];
-                        p.rightRect = p.rightRect+[0 1 0 1];
-                end
-            end
-        end
-        
-    end
+p.texAlpha = [0, 50, 100, 50, 0];
 
 end

@@ -1,0 +1,8 @@
+Overall Object_binocCFSs Results
+
+,Inclusion_Recall,,,,,,,,,,Exclusion_Recall,,,,,,,,,,Recall_dPrime
+SUBJECT,recall_Foil_In,recall_binoc_In,recall_CFS_In,recall_binocCFS_In,,notRecall_Foil_In,notRecall_binoc_In,notRecall_CFS_In,notRecall_binocCFS_In,,recall_Foil_Ex,recall_binoc_Ex,recall_CFS_Ex,recall_binocCFS_Ex,,notRecall_Foil_Ex,notRecall_binoc_Ex,notRecall_CFS_Ex,notRecall_binocCFS_Ex
+1,0.5, 0.67, 0.21, 0.55,,0.5, 0.33, 0.79, 0.45,,0.2,   0,   0,   0,,0.8,   1,   1,   1,,Inf, Inf, Inf, Inf,
+
+AVERAGES,0.5, 0.67, 0.21, 0.55,,0.5, 0.33, 0.79, 0.45,,0.2,   0,   0,   0,,0.8,   1,   1,   1,,Inf, Inf, Inf, Inf,
+SEM,NaN, NaN, NaN, NaN,,NaN, NaN, NaN, NaN,,NaN, NaN, NaN, NaN,,NaN, NaN, NaN, NaN,,NaN, NaN, NaN, NaN,

@@ -1,0 +1,5 @@
+Overall Object_CFSs Results
+
+,Inclusion_Recall,,,,,,,,In_zero_recall,,,,In_one_recall,,,,In_two_recall,,,,In_three_recall,,,,In_zero_noRecall,,,,In_one_noRecall,,,,In_two_noRecall,,,,In_three_noRecall,,,,Exclusion_Recall,,,,,,,,Ex_zero,,,,Ex_one,,,,Ex_two,,,,Ex_three,,,,Ex_zero_noRecall,,,,Ex_one_noRecall,,,,Ex_two_noRecall,,,,Ex_three_noRecall,,,,Recall_dPrime
+SUBJECT,recall_Foil_In,recall_binoc_In,recall_CFS_In,,notRecall_Foil_In,notRecall_binoc_In,notRecall_CFS_In,,recall_Foil_In,recall_binoc_In,recall_CFS_In,,recall_Foil_In,recall_binoc_In,recall_CFS_In,,recall_Foil_In,recall_binoc_In,recall_CFS_In,,recall_Foil_In,recall_binoc_In,recall_CFS_In,,recall_Foil_Ex,recall_binoc_Ex,recall_CFS_Ex,,notRecall_Foil_Ex,notRecall_binoc_Ex,notRecall_CFS_Ex,,recall_Foil_Ex,recall_binoc_Ex,recall_CFS_Ex,,recall_Foil_Ex,recall_binoc_Ex,recall_CFS_Ex,,recall_Foil_Ex,recall_binoc_Ex,recall_CFS_Ex,,recall_Foil_Ex,recall_binoc_Ex,recall_CFS_Ex,,dPrime_binoc_Diff, dPrime_CFS_Diff, dPrime_Average_Diff
+1

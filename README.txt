@@ -8,13 +8,20 @@ study while masked under CFS (should increase only visual recollection).
 Analysis will be done based on state-trace style plot of Inclusion vs Exclusion
  -> will probably want to include classic vis recollection vs epi recollection, 
 	but the main thrust will be simple, uncalculated rates during In and Ex
+
+***************************************************************************
+FOLDER STRUCTURE:
+
+admin -> useful files for working with RAs (including consent forms)
+analysisCode -> MATLAB and R files for working with subjectData
+cfs_allExpts -> the actual experimental files
+
+
 ***************************************************************************
 
 january 7, 2016
 ps
 
-NEW -> folder 'forGit' contains only the files to be uploaded to gitHub. 
- -> no longer uploading binary files!!!
 
 afc_shortStudyLists -> in an effort to increase the strength of the cfs condition
    the study lists are now being presented in blocks of 16

@@ -9,6 +9,9 @@ function [ p ] = presentStudyImage( p, trial, texture, leftRightEye, texAlpha)
 % binoc+CFS condition
 % NOTE: didn't change anything but a couple of comments
 
+% 8jan2016 ps - updated for shortStudyList
+% ALSO: added Screen('Close')
+
 %------------
 % Variables:
 % p: experimental structure
@@ -18,9 +21,10 @@ function [ p ] = presentStudyImage( p, trial, texture, leftRightEye, texAlpha)
 % NOTE: mondrians are always presented
 %----------------------------
 % reminder of condition keys
-% 0 = no study (foils, seen as just mondrians)
-% 1 = binocular study (whole object)
-% 2 = CFS study (masked)
+% 1 = no study (foils, seen as just mondrians)
+% 2 = word
+% 3 = CFS study (masked)
+% 4 = binocular study (whole object)
 %----------------------------
 
 %% have participant relax and focus on center region
@@ -181,7 +185,7 @@ for tick=1:length(texAlpha)
     end
     
 end
-
+Screen('Close');
 
 p.timing.downStudy_whole(trial) = GetSecs;
 p.dur.study_whole(trial) = p.timing.downStudy_whole(trial)-p.timing.upStudy_whole(trial);

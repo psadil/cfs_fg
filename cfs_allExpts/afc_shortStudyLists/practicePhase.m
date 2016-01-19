@@ -1,14 +1,15 @@
 function [] = practicePhase(p, trialsPracticeStudy, trialsPracticeTest)
 
-% practicePhase called during runPDP_objects_CFS to give five trials of practice
+% practicePhase called during runPDP_objects_CFS short practice
 % to participating subjects.
 
-% practice phase will include four trials. 2 trials of CFS, 2 trials of
-% binocularly studied.
+% practice phase will include 8 trials. 1 pair from each condition
 % 1 of each of those trials will be seen in each the inclusion and
 % exclusion condition.
 
-p.nItems = length(trialsPracticeStudy);
+% 8jan2016
+% ps
+% updated for shortStudyLists version of experiment
 
 %text to display
 text_beginPrac = 'You will first complete a short version of the study as practice. This practice will look exactly like the full experiment, but with fewer items to look at. Feel free to grab the experimenter if you have any questions.';
@@ -55,12 +56,14 @@ end
 
 
 %% begin practice study phase
+list=1;
+
 if p.studyPhase
-    [~] = studyPhase(p, trialsPracticeStudy, trialsPracticeTest);
+    [~] = studyPhase(p, trialsPracticeStudy, trialsPracticeTest,list);
 end
     
-% % begin practice test phase
-% [~] = testPhase(p, trialsPracticeTest);
+% begin practice test phase
+[~] = testPhase(p, trialsPracticeTest,list);
 
 
 % force them to go get the experimentor before moving on. Allows a chance

@@ -9,7 +9,6 @@ function [p] = studyPhase(p, trialsStudy,list)
 p.startStudyPhase = GetSecs;
 
 %% study parameters
-p.nItems = length(trialsStudy);
 
 % stimulus parameters
 p.studyDur = 2;   % stimulus duration in seconds [objects scenes]
@@ -76,19 +75,20 @@ for studyItem = 1:p.nItems.list_total
     
     
     %----------------------------------
-    % decide presentation length
+    % present Study Item
     %----------------------------------
-%     texAlpha = p.texAlpha.secs_p_five;
     
     if ~p.wordTrial(trial)
         p = presentStudyImage(p,trial,trialsStudy(item).tex, leftRight, p.texAlpha);
     else
         p = presentStudyWord(p,trial, stimWord, leftRight, p.texAlpha);
     end
-    % solicit and collect their name for the object
+
     p.timing.startStudyResp_dur(trial) = GetSecs;
     
-    % call function
+    %----------------------------------
+    % solicit and collect PAS response
+    %----------------------------------
     p = studyResp(p, trial);
     
     p.timing.endStudyResp_dur(trial) = GetSecs;

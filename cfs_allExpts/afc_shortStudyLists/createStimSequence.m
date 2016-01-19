@@ -18,7 +18,7 @@ function [ p, trialsStudy, trialsTest, trialsPracticeStudy, trialsPracticeTest ]
 
 %% variables that define how many stimuli
 p.nItems.unique = 192; % nItems must be in multiples of 16
-p.nItems.practice = 20; % items seen in practice phase
+p.nItems.practice = 16; % items seen in practice phase
 p.nConds = 4; % number of item conditions
 p.nItems.studyList = 16; % number of items seen in study list
 p.nReps = 3; % number of times items repeated per study list
@@ -50,6 +50,7 @@ p.ind.testList = 1:p.nItems.studyList:p.nItems.unique;
 
 % put pairs in to table
 stimTab = table(pairs);
+stimTab = stimTab(1:p.nItems.unique,:);
 
 % % choose random order of items.
 % p.tTypeStudy = randperm(p.nItems);
@@ -67,7 +68,7 @@ test = unique(tmp(:),'stable');
 % 4 = binoc
 
 % assign the randomized stimuli an item condition
-itemConds = repelem(1:4,p.nItemsPerStudyCond)';
+itemConds = repelem(1:4,p.nItems.studyCond)';
 
 [~, itemCond_ind] = ismember(test,stimTab.pairs(:,1));
 
@@ -93,20 +94,20 @@ trialsStudy = struct('name', num2cell(stimTab.studyOrder(:,1)));
 
 % create field with trial type
 itemCondition_study_cell = num2cell(stimTab.itemCond_study);
-[trialsStudy(1:p.nItems).tType] = deal(itemCondition_study_cell{:});
+[trialsStudy(1:p.nItems.unique).tType] = deal(itemCondition_study_cell{:});
 
 % grab the names of all test items
 % testNames = dir([p.root, '/stims/*.jpeg']);
 
 % read data from all items, making composite image matrix (RGB + alpha columns) 
-[study_images, ~, transperancy_study] = arrayfun(@(x) imread( [p.root, '/stims/whole/object', num2str(x.name), '_noBkgrd'], 'png'), trialsStudy, 'UniformOutput', 0);
+[study_images, ~, transperancy_study] = arrayfun(@(x) imread( [p.root, '/stims/expt/whole/object', num2str(x.name), '_noBkgrd'], 'png'), trialsStudy, 'UniformOutput', 0);
 study_images_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), study_images, transperancy_study, 'UniformOutput', 0);
 
 % make textures of images
 cellStudy = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), study_images_wAlpha));
 
 % name textures of each stim
-[trialsStudy(1:p.nItems).tex] = deal(cellStudy{:}); 
+[trialsStudy(1:p.nItems.unique).tex] = deal(cellStudy{:}); 
 
 %--------------------------------------------------------------------------
 % Next, make study word textures
@@ -126,27 +127,27 @@ trialsTest = struct('name', num2cell(stimTab.testOrder(:,1)));
 
 % create field with pairing
 itemPair_test_cell = num2cell(stimTab.testOrder(:,2));
-[trialsTest(1:p.nItems).pair] = deal(itemPair_test_cell{:});
+[trialsTest(1:p.nItems.unique).pair] = deal(itemPair_test_cell{:});
 
 % create field with trial type
 itemCondition_test_cell = num2cell(stimTab.itemCond_test);
-[trialsTest(1:p.nItems).tType] = deal(itemCondition_test_cell{:});
+[trialsTest(1:p.nItems.unique).tType] = deal(itemCondition_test_cell{:});
 
 % grab all of each apertures
 [test_ap1, ~, alpha1] = arrayfun(@(x) imread( [p.root,...
-    '/stims/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap1'], 'png'), ...
+    '/stims/expt/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap1'], 'png'), ...
     trialsTest, 'UniformOutput', 0);
 test_ap1_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), test_ap1, alpha1, 'UniformOutput', 0);
 
-[test_ap2, ~, alpha2] = arrayfun(@(x) imread( [p.root,...
-    '/stims/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap2'], 'png'), ...
+[test_ap2, ~, ~] = arrayfun(@(x) imread( [p.root,...
+    '/stims/expt/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap2'], 'png'), ...
     trialsTest, 'UniformOutput', 0);
 testOne = cellfun(@(x, n) x+n, test_ap1, test_ap2, 'UniformOutput', 0);
 testOne = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), testOne, alpha1, 'UniformOutput', 0);
 % test_ap2_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), test_ap2, alpha2, 'UniformOutput', 0);
 
-[test_ap3, ~, alpha3] = arrayfun(@(x) imread( [p.root,...
-    '/stims/apertures/object', num2str(x.pair), '_paired', num2str(x.name), '_ap3'], 'png'), ...
+[test_ap3, ~, ~] = arrayfun(@(x) imread( [p.root,...
+    '/stims/expt/apertures/object', num2str(x.pair), '_paired', num2str(x.name), '_ap3'], 'png'), ...
     trialsTest, 'UniformOutput', 0);
 testTwo = cellfun(@(x, n) x+n, test_ap1, test_ap3, 'UniformOutput', 0);
 testTwo = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), testTwo, alpha1, 'UniformOutput', 0);
@@ -167,32 +168,59 @@ cellTestTwo = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), testTwo));
 [trialsTest(1:p.nItems).p2] = deal(cellTestTwo{:}); 
 
 %% finally, make textures for practice phase
-p.practiceOrder_study = randperm(p.nItems_practice)+p.nItems; % practice items are numbered 120-125
-p.itemCondition_practice_study = randi(p.nConds,1,p.nItems_practice);
+p.practiceOrder_study = randperm(p.nItems.practice)+p.nItems.unique; 
+p.itemCondition_practice_study = randi(p.nConds,1,p.nItems.practice);
 
 % create practice_study structure
 trialsPractice_study = struct('name', num2cell(p.practiceOrder_study));
-trialsPractice_test = trialsPractice_study;
 
 % create field with trial type
 itemCondition_practice_study_cell = num2cell(p.itemCondition_practice_study);
-[trialsPractice_study(1:p.nItems_practice).tType] = deal(itemCondition_practice_study_cell{:});
+[trialsPractice_study(1:p.nItems.practice).tType] = deal(itemCondition_practice_study_cell{:});
 
 
 % read data from all items, making composite image matrix (RGB + alpha columns) 
-[practiceStudy_images, ~, transperancy_pracStudy] = arrayfun(@(x) imread( [p.root, '/stims/whole/object', num2str(x.name), '_noBkgrd'], 'png'), trialsPractice_study, 'UniformOutput', 0);
+% study
+[practiceStudy_images, ~, transperancy_pracStudy] = arrayfun(@(x) imread( [p.root, '/stims/practice/whole/object', num2str(x.name), '_noBkgrd'], 'png'), trialsPractice_study, 'UniformOutput', 0);
 practiceStudy_images_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), practiceStudy_images, transperancy_pracStudy, 'UniformOutput', 0);
-[practiceTest_images, ~, ~] = arrayfun(@(x) imread( [p.root, '/stims/apertures/object', num2str(x.name), '_pilotAp'], 'png'), trialsPractice_test, 'UniformOutput', 0);
-% practiceTest_images_wAlpha = cellfun(@(x, n) cat(3,x(:,:,1:3),n(:,:)), practiceTest_images, transperancy_pracTest, 'UniformOutput', 0);
+
+cellPracticeStudy = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), practiceStudy_images_wAlpha));
+[trialsPracticeStudy(1:p.nItems_practice).tex] = deal(cellPracticeStudy{:}); 
+
+%test
+[practiceTest_ap1, ~, pracAlpha1] = arrayfun(@(x) imread( [p.root,...
+    '/stims/practice/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap1'], 'png'), ...
+    trialsTest, 'UniformOutput', 0);
+pracTest_ap1_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), practiceTest_ap1, pracAlpha1, 'UniformOutput', 0);
+
+[practiceTest_ap2, ~, ~] = arrayfun(@(x) imread( [p.root,...
+    '/stims/practice/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap2'], 'png'), ...
+    trialsTest, 'UniformOutput', 0);
+pracTestOne = cellfun(@(x, n) x+n, test_ap1, practiceTest_ap2, 'UniformOutput', 0);
+pracTestOne = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), pracTestOne, pracAlpha1, 'UniformOutput', 0);
+% test_ap2_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), test_ap2, alpha2, 'UniformOutput', 0);
+
+[practiceTest_ap3, ~, ~] = arrayfun(@(x) imread( [p.root,...
+    '/stims/practice/apertures/object', num2str(x.pair), '_paired', num2str(x.name), '_ap3'], 'png'), ...
+    trialsTest, 'UniformOutput', 0);
+pracTestTwo = cellfun(@(x, n) x+n, test_ap1, practiceTest_ap3, 'UniformOutput', 0);
+pracTestTwo = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), pracTestTwo, pracAlpha1, 'UniformOutput', 0);
+% test_ap3_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), test_ap3, alpha3, 'UniformOutput', 0);
 
 % make textures of images
-cellPracticeStudy = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), practiceStudy_images_wAlpha));
-cellPracticeTest = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), practiceTest_images));
-
+cellpracTestAp1 = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), pracTest_ap1_wAlpha));
+cellpracTestOne = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), pracTestOne));
+cellpracTestTwo = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), pracTestTwo));
 
 % name textures of each stim
-[trialsPracticeStudy(1:p.nItems_practice).tex] = deal(cellPracticeStudy{:}); 
-[trialsPracticeTest(1:p.nItems_practice).tex] = deal(cellPracticeTest{:}); 
+[trialsPracticeTest(1:p.nItems).ap1] = deal(cellpracTestAp1{:}); 
+
+% the following get randomly chosen so that each are presented on left and
+% right sides of screen during 2afc (don't want the 1 / 2 pair to always be
+% on the same side)
+[trialsPracticeTest(1:p.nItems).p1] = deal(cellpracTestOne{:}); 
+[trialsPracticeTest(1:p.nItems).p2] = deal(cellpracTestTwo{:}); 
+
 
 p.stimTable=stimTab;
 end

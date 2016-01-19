@@ -1,0 +1,4 @@
+$ cat .gitignore
+
+# ignore stim directories (can be found on google drive)
+**/stims

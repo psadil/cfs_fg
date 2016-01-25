@@ -116,14 +116,8 @@ for sub = 0:p.nPerBlocking-1
         
         % set up test order
         
-%         [~, firstInd] = Shuffle(tTable.pairs(tTable.leftPairFirst==1));
-%         [~, secondInd] = Shuffle(tTable.pairs(tTable.leftPairFirst==0));
-
-        [~, firstInd] = ismember(tTable.pairs(tTable.leftPairFirst==1),tTable.pairs);
-        [~, secondInd] = ismember(tTable.pairs(tTable.leftPairFirst==0),tTable.pairs);
-
-        firstInd = Shuffle(firstInd);
-        secondInd = Shuffle(secondInd);
+        [~, firstInd] = Shuffle(tTable.pairs(tTable.leftPairFirst==1));
+        [~, secondInd] = Shuffle(tTable.pairs(tTable.leftPairFirst==0));
         
         testOrder(firstToFill(list):lastToFill(list)) = tTable.pairs([firstInd;secondInd],1);
         itemConds_test(firstToFill(list):lastToFill(list)) = tTable.itemConds([firstInd;secondInd]);

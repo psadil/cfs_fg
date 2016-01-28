@@ -11,17 +11,17 @@ text_first1 = 'During this study phase, shifting patterns of colored squares wil
 text_first2 = 'On some of the trials, you will also notice an image or word behind the colored squares.';
 text_first3 = 'You will see an example of the squares on the next slide.';
 
-text_second1 = 'After every trial, you will be asked whether you saw anything besides the squares. On most trials, you will only see squares.';
+text_second1 = 'After every trial, you will be asked whether you saw anything besides the squares. On many trials, you will only see squares.';
 text_second2 = 'If you don''t see anything besides the pattern, press 0';
 text_second3 = 'You will see another example of the squares on the next slide.';
 
 text_third1 = 'On some trials, you will might notice something displayed behind the squares';
-text_third2 = 'If you could CLEARLY SEE something besides the squares, AND NAME IT (like a ''skate board''), please press 3.';
+text_third2 = 'If you could CLEARLY SEE something besides the squares, AND NAME IT (like a ''light switch''), please press 3.';
 text_third3 = 'If you DEFINITELY saw something, but are unsure what (though you might be able to guess), press 2';
 text_third4 = 'If you only POSSIBLY saw something, but COULDN''T accurately say what it was, press 1';
 
-text_fourth1 = 'You will then see a part of an object.';
-text_fourth2 = 'You will then see a part of an object.';
+% text_fourth1 = 'You will then see a part of an object.';
+% text_fourth2 = 'You will then see a part of an object.';
 
 
 % placement of text
@@ -38,7 +38,7 @@ tCenterThird2 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, text_third2)
 tCenterThird3 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, text_third3))/2  p.yCenter];
 tCenterThird4 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, text_third4))/2  p.yCenter+90];
 
-texAlpha = p.texAlpha.secs_1p_five;
+texAlpha = p.texAlpha;
 
 %% begin instructions
 KbQueueCreate(0,p.keys_Navigation);
@@ -120,19 +120,18 @@ end
 waitSomeSecs(.5,p);
 
 % example of whole stimuli
-filename_whole=strcat(pwd, '\stims\whole\object221_noBkgrd.png'); %Grab the tree
-[image_whole, mapCol, transperancy] = imread(filename_whole, 'background', 'none');
+filename_whole=strcat(pwd, '\stims\instructions\object212_noBkgrd.png');
+[image_whole, ~, transperancy] = imread(filename_whole, 'background', 'none');
 image_whole(:,:,2)=transperancy;
 texture_wholeObject = Screen('MakeTexture',p.window, image_whole);
 
-% present tree image to both eyes
+% present image to both eyes
 if p.rightEyeDom
     presentStudyImage(p,1,texture_wholeObject,[1,2],texAlpha)
 else
     presentStudyImage(p,1,texture_wholeObject,[2,1],texAlpha)
 end
 
-% instructions to ANSWER: SOMETHING/TREE
 while 1
     
     % one eye

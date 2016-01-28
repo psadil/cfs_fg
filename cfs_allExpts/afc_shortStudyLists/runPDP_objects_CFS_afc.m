@@ -6,6 +6,9 @@ clear all;
 sca
 clear PsychImaging
 
+if ~exist([pwd, '\Subject Data\'], 'dir')
+    mkdir([pwd, '\Subject Data\']);
+end
 
 
 % set up experiment
@@ -29,7 +32,6 @@ else    %if cancel button or not enough input, then just bail
     return
 end
 
-Demographics(p.subNum)
 
 
 %% initialize CFS needs (squares and such)
@@ -159,8 +161,12 @@ ListenChar(0);
 %% create stim sequence
 p.root = pwd;
 
-[p, trialsStudy, traialsTest, trialsPracticeStudy, trialsPracticeTest] = createStimSequence(p);
-
+try
+    [p, trialsStudy, traialsTest, trialsPractices_study, trialsPractice_test] = createStimSequence(p);
+catch err
+    sca
+    throw(err)
+end
 %%  some other parameters we need for break
 p.break = 5; %secs of forced break
 
@@ -168,10 +174,15 @@ p.break = 5; %secs of forced break
 %% begin practice phase
 if p.practice
     
-    
-    % begin practice phase
-    practicePhase(p, trialsPracticeStudy, trialsPracticeTest);
-    
+%     try
+        
+        %begin practice phase
+        practicePhase(p, trialsPractices_study, trialsPractice_test);
+%     catch err
+%         sca
+%         throw(err)
+%     end
+%     %
     
 end
 
@@ -210,9 +221,6 @@ p = experimentalPhase(p, trialsStudy, traialsTest);
 p.dur.exp = GetSecs - startExp;
 
 
-if ~exist([pwd, '\Subject Data\'], 'dir')
-    mkdir([pwd, '\Subject Data\']);
-end
 fName=[pwd, '\Subject Data\', 'Subject', num2str(p.subNum), 'CFS_obj_2AFC_pilot', num2str(p.sessNum), '.mat'];
 
 if exist(fName,'file')
@@ -232,3 +240,6 @@ end
 save(fName, 'p');
 
 sca
+
+
+Demographics(p.subNum)

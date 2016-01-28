@@ -49,9 +49,9 @@ for testItem = 1:p.nItems.studyList
     p.test_leftRight(trial) = randi([1,2],1);
     
     if p.test_leftRight(trial) == 1
-        p = afcResp(p,trialsTest(trial).ap1, trialsTest(trial).ap2, trialsTest(trial).ap3, trial);
+        p = afcResp(p,trialsTest(item).p1, trialsTest(item).p2,trial);
     else
-        p = afcResp(p,trialsTest(trial).ap1, trialsTest(trial).ap3, trialsTest(trial).ap2, trial);
+        p = afcResp(p,trialsTest(item).p2, trialsTest(item).p1,trial);
     end
     
     

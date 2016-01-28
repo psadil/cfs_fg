@@ -1,10 +1,8 @@
-function [p] = studyPhase(p, trialsStudy,list)
+function [p] = studyPhase(p, studyTrials,list)
 % studyPhase: called by buth experimentalPhase and practicePhase
 %
 % calls: studyInstructions, presentStudyImage, and studyResp
 
-% 8/17/15 ps - updated to no longer make reference to now nonexistant
-% binoc+CFS condition
 
 p.startStudyPhase = GetSecs;
 
@@ -33,13 +31,17 @@ p.rects = [];
 
 %% which items in this study list
 
-currentListInd = p.ind.studyList(list):(p.ind.list(list) + p.nItems.list_total-1);
+currentListInd = p.ind.studyList(list):(p.ind.studyList(list) + p.nItems.list_total-1);
 
 
 %% enter the trial loop ------------------
 for studyItem = 1:p.nItems.list_total
     
+    
     trial = currentListInd(studyItem);
+    
+    % item on list to be grabbed, p.ind.study acts sort of like a call to
+    % mod
     item = p.ind.study(trial);
     
     p.timing.trialStart_study(trial) = GetSecs;
@@ -53,7 +55,7 @@ for studyItem = 1:p.nItems.list_total
     elseif p.stimTab.itemCond_study(item) == 2 % if 2: word
         Screen('TextSize',p.window, p.wordStimFont);
         p.wordTrial(trial) = 1;
-        stimWord = p.words{trial};
+        stimWord = p.words{item};
         
         %         leftRight = [1,1]; % call CFS with left/righ eye == image+mondrian,
         %             if p.rightEyeDom
@@ -79,7 +81,7 @@ for studyItem = 1:p.nItems.list_total
     %----------------------------------
     
     if ~p.wordTrial(trial)
-        p = presentStudyImage(p,trial,trialsStudy(item).tex, leftRight, p.texAlpha);
+        p = presentStudyImage(p,trial,studyTrials(item).tex, leftRight, p.texAlpha);
     else
         p = presentStudyWord(p,trial, stimWord, leftRight, p.texAlpha);
     end

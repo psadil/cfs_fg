@@ -21,49 +21,49 @@ tCenterEnd = [p.xCenter-RectWidth(Screen('TextBounds', p.window, text_end))/2  p
 %% Study
 
 % timing variables
-p.timing.upStudy_whole = zeros(p.nItems_studyList,1);
-p.timing.downStudy_whole = zeros(p.nItems_total,1);
+p.timing.upStudy_whole = zeros(p.nTrials,1);
+p.timing.downStudy_whole = zeros(p.nTrials,1);
 
-p.dur.study_whole = zeros(p.nItems_total,1);
-p.dur.trial_study = zeros(p.nItems_total,1);
+p.dur.study_whole = zeros(p.nTrials,1);
+p.dur.trial_study = zeros(p.nTrials,1);
 
-p.timing.trialStart_study = zeros(1, p.nItems_total);
-p.timing.trialEnd_study = zeros(1, p.nItems_total);
+p.timing.trialStart_study = zeros(1, p.nTrials);
+p.timing.trialEnd_study = zeros(1, p.nTrials);
 
-p.timing.startStudyResp_dur = zeros(1,p.nItems_total);
-p.timing.endStudyResp_dur = zeros(1,p.nItems_total);
-p.timing.startStudyResp_rt = zeros(1,p.nItems_total);
-p.timing.endStudyResp_rt = zeros(1,p.nItems_total);
+p.timing.startStudyResp_dur = zeros(1,p.nTrials);
+p.timing.endStudyResp_dur = zeros(1,p.nTrials);
+p.timing.startStudyResp_rt = zeros(1,p.nTrials);
+p.timing.endStudyResp_rt = zeros(1,p.nTrials);
 
 % item name variables
-p.responses.study = zeros(p.nItems_total,1);
-p.rt.study = zeros(p.nItems_total,1);
+p.responses.study = zeros(p.nTrials,1);
+p.rt.study = zeros(p.nTrials,1);
 % p.responses.study_name = char(zeros(p.nItems,20));
 
-p.wordTrial = zeros(p.nItems_total,1);
+p.wordTrial = zeros(p.nTrials,1);
 
 %% Test
 
-p.timing.stimUpTest = zeros(p.nItems_total,1);
-p.timing.stimDownTest = zeros(p.nItems_total,1);
-p.dur.recall = zeros(p.nItems_total,1);
+p.timing.stimUpTest = zeros(p.nItems.unique,1);
+p.timing.stimDownTest = zeros(p.nItems.unique,1);
+p.dur.recall = zeros(p.nItems.unique,1);
 
-p.timing.startRecallResp_dur = zeros(1,p.nItems_total,1);
-p.timing.endRecallResp_dur = zeros(1,p.nItems_total,1);
-p.timing.startRecallResp_rt = zeros(1,p.nItems_total,1);
-p.timing.endRecallResp_rt = zeros(1,p.nItems_total,1);
+p.timing.startRecallResp_dur = zeros(1,p.nItems.unique,1);
+p.timing.endRecallResp_dur = zeros(1,p.nItems.unique,1);
+p.timing.startRecallResp_rt = zeros(1,p.nItems.unique,1);
+p.timing.endRecallResp_rt = zeros(1,p.nItems.unique,1);
 
-p.timing.trialStart_test = zeros(1, p.nItems_total);
-p.timing.trialEnd_test = zeros(1, p.nItems_total);
+p.timing.trialStart_test = zeros(1, p.nItems.unique);
+p.timing.trialEnd_test = zeros(1, p.nItems.unique);
 
-p.timing.startTestPhase = [0 0];     % which ever comes first (in or ex) will be first element referenced
-p.timing.endTestPhase = [0 0];
-p.dur.TestPhase = [0 0];
+p.timing.startTestPhase = zeros(1,p.nStudyLists);     % which ever comes first (in or ex) will be first element referenced
+p.timing.endTestPhase = zeros(1,p.nStudyLists);  
+p.dur.TestPhase = zeros(1,p.nStudyLists);  
 
-p.rt.recall = zeros(1,p.nItems_total);
-p.responses.recall = char(zeros(p.nItems_total,20));
+p.rt.recall = zeros(1,p.nItems.unique);
+p.responses.recall = char(zeros(p.nItems.unique,20));
 
-p.test_leftRight = zeros(p.nItems_total,1);
+p.test_leftRight = zeros(p.nItems.unique,1);
 
 %%
 
@@ -84,6 +84,10 @@ tCenterStartTest = [p.xCenter-RectWidth(Screen('TextBounds', p.window, text_star
 
 for list = 1:p.nStudyLists
     %% study phase
+    
+    if list == 1
+        [ ~ ] = studyInstructions(p);
+    end
     
     
     %-----------------------------------------------
@@ -122,12 +126,12 @@ for list = 1:p.nStudyLists
     %-----------------------------------------------
     
     if p.studyPhase
-        try
-            [p] = studyPhase(p, trialsStudy, list);
-        catch err
-            sca
-            throw(err)
-        end
+        %         try
+        [p] = studyPhase(p, trialsStudy, list);
+        %         catch err
+        %             sca
+        %             throw(err)
+        %         end
     end
     
     %-----------------------------------------------
@@ -165,10 +169,15 @@ for list = 1:p.nStudyLists
     
     %%  test phase
     
+    if list == 1
+        [ ~ ] = testInstructions(p);
+    end
+    
+    
     %-----------------------------------------------
     % brief 'get prepared for testing'
     %-----------------------------------------------
-
+    
     while 1
         
         % one eye
@@ -196,12 +205,12 @@ for list = 1:p.nStudyLists
     end
     
     
-    try
-        [p] = testPhase(p, trialsTest, list);
-    catch err
-        sca
-        throw(err)
-    end
+    %     try
+    [p] = testPhase(p, trialsTest, list);
+    %     catch err
+    %         sca
+    %         throw(err)
+    %     end
     
     
 end

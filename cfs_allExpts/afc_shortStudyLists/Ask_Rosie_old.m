@@ -141,15 +141,13 @@ while 1
         
         Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect-[350, 0, 350, 0]);
         Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect-[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imLeft1,[],rosie.imageRect-[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imLeft2,[],rosie.imageRect-[350, 0, 350, 0]);
+        Screen('DrawTexture',window, rosie.imLeft,[],rosie.imageRect-[350, 0, 50, 0]);
         
         Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect+[350, 0, 350, 0]);
         Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect+[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imRight1,[],rosie.imageRect+[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imRight2,[],rosie.imageRect+[350, 0, 350, 0]);
+        Screen('DrawTexture',window, rosie.imRight,[],rosie.imageRect+[350, 0, 50, 0]);
         
-    elseif rosie.test == 0
+    else
         DrawFormattedText(window,rosie.text2,'center', rosie.tCenter2(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text3,'center', rosie.tCenter3(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text4,'center', rosie.tCenter4(2),[],rosie.wrapat,[],[],1.5);
@@ -171,15 +169,14 @@ while 1
         
         Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect-[350, 0, 350, 0]);
         Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect-[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imLeft1,[],rosie.imageRect-[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imLeft2,[],rosie.imageRect-[350, 0, 350, 0]);
+        Screen('DrawTexture',window, rosie.imLeft,[],rosie.imageRect-[350, 0, 50, 0]);
         
         Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect+[350, 0, 350, 0]);
         Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect+[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imRight1,[],rosie.imageRect+[350, 0, 350, 0]);
-        Screen('DrawTexture',window, rosie.imRight2,[],rosie.imageRect+[350, 0, 350, 0]);
+        Screen('DrawTexture',window, rosie.imRight,[],rosie.imageRect+[350, 0, 50, 0]);
         
-    elseif rosie.test == 0
+        
+    else
         DrawFormattedText(window,rosie.text2,'center', rosie.tCenter2(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text3,'center', rosie.tCenter3(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text4,'center', rosie.tCenter4(2),[],rosie.wrapat,[],[],1.5);

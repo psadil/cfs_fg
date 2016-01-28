@@ -185,7 +185,7 @@ for tick=1:length(texAlpha)
     end
     
 end
-Screen('Close');
+% Screen('Close');
 
 p.timing.downStudy_whole(trial) = GetSecs;
 p.dur.study_whole(trial) = p.timing.downStudy_whole(trial)-p.timing.upStudy_whole(trial);

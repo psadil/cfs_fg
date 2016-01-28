@@ -1,4 +1,4 @@
-function [ p ] = afcResp( p, ap1, ap_left, ap_right, trial )
+function [ p ] = afcResp( p, texLeft, texRight, trial )
 %studyResp solicit and collect (with Ask_RosieNorm_QUEUE) study resp
 % p: experimental structure
 % trial: trial number
@@ -10,8 +10,8 @@ function [ p ] = afcResp( p, ap1, ap_left, ap_right, trial )
 Screen('TextSize',p.window, p.fontSize);
 % text
 % rosie.text1 = 'If you saw only squares, press 0. If you clearly saw an image besides, the squres, press 2. If you saw something besides the squares, but are unsure what it was, press 1';
-rosie.text1 = 'Left - 1';
-rosie.text2 = 'Right - 2';
+rosie.text1 = 'Left - 0';
+rosie.text2 = 'Right - 1';
 text_answer = 'Answer:  ';
 rosie.text_enter = p.text_enter;
 
@@ -29,10 +29,8 @@ rosie.keys_Response = p.keys_simpleResp+p.keys_Navigation;
 
 % textures
 rosie.texture_ITI = p.texture_ITI;
-rosie.imLeft1 = ap1;
-rosie.imLeft2 = ap_left;
-rosie.imRight1 = ap1;
-rosie.imRight2 = ap_right;
+rosie.imLeft = texLeft;
+rosie.imRight = texRight;
 
 rosie.whiteTex = p.whiteTex;
 rosie.whiteRect = p.whiteRect;
@@ -47,6 +45,7 @@ rosie.wrapat = p.wrapat;
 rosie.test = 1;
 
 %% solicit response
+% rosie.test = 0;
 getResp = 1;
 % p.timing.startTestResp_rt(trial) = GetSecs;
 while getResp
@@ -57,7 +56,7 @@ while getResp
     
     reply=Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie); % Accept keyboard input, echo it to screen.
     
-    p.responses.afc(trial) = reply(1);
+    p.responses.afc(trial) = str2double(reply(1));
 %     p.timing.endStudyResp_rt(trial) = GetSecs;
 %     p.rt.study(trial) = p.timing.endStudyResp_rt(trial)-p.timing.startStudyResp_rt(trial);
     getResp = 0;

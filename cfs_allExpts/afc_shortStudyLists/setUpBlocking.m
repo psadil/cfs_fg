@@ -3,9 +3,13 @@
 % 1/19/16
 % ps
 % initial write
-rng('shuffle');
-s = rng;
-save('blockSeed','s')
+% rng('shuffle');
+% s = rng;
+
+p.rndSeed = round(sum(100*clock));
+rand('state',p.rndSeed);  %actually seed the random number generator
+
+% save('blockSeed',p.rndSeed)
 
 
 %%
@@ -92,9 +96,9 @@ for sub = 0:p.nPerBlocking-1
     inds = arrayfun(@(x) find(stimTmp.itemConds == x), b,'UniformOutput',0 );
     
     studyOrder = zeros(p.nItems.unique,1);
-    itemConds_study = zeros(p.nItems.unique,1);
+    itemCond_study = zeros(p.nItems.unique,1);
     testOrder = zeros(p.nItems.unique,1);
-    itemConds_test = zeros(p.nItems.unique,1);
+    itemCond_test = zeros(p.nItems.unique,1);
     leftFirst_test = zeros(p.nItems.unique,1);
     
     firstToFill=(1:p.nItems.studyList:p.nItems.unique);
@@ -112,7 +116,7 @@ for sub = 0:p.nPerBlocking-1
         
         % set up study order
         [studyOrder(firstToFill(list):lastToFill(list)), studyOrder_ind] = Shuffle(tTable.pairs(:,1));
-        itemConds_study(firstToFill(list):lastToFill(list)) = tTable.itemConds(studyOrder_ind);
+        itemCond_study(firstToFill(list):lastToFill(list)) = tTable.itemConds(studyOrder_ind);
         
         % set up test order
         
@@ -126,18 +130,22 @@ for sub = 0:p.nPerBlocking-1
         secondInd = Shuffle(secondInd);
         
         testOrder(firstToFill(list):lastToFill(list)) = tTable.pairs([firstInd;secondInd],1);
-        itemConds_test(firstToFill(list):lastToFill(list)) = tTable.itemConds([firstInd;secondInd]);
+        testPairs(firstToFill(list):lastToFill(list)) = tTable.pairs([firstInd;secondInd],2);
+        itemCond_test(firstToFill(list):lastToFill(list)) = tTable.itemConds([firstInd;secondInd]);
         leftFirst_test(firstToFill(list):lastToFill(list)) = tTable.leftPairFirst([firstInd;secondInd]);
         
         
     end
     
     stimTmp.studyOrder = studyOrder;
-    stimTmp.itemConds_study = itemConds_study;
+    stimTmp.itemCond_study = itemCond_study;
     stimTmp.testOrder = testOrder;
-    stimTmp.itemConds_test = itemConds_test;
+    stimTmp.testPair = testPairs';
+    stimTmp.itemCond_test = itemCond_test;
     stimTmp.leftFirst_test = leftFirst_test;
     
-    save([pwd, '/stimTabs/stimTab_sub', num2str(sub+1)], 'stimTmp');
+    Stims = stimTmp;
+    
+    save([pwd, '/stimTabs/stimTab_sub', num2str(sub+1)], 'Stims');
     
 end

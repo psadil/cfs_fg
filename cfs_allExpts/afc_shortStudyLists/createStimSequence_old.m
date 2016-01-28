@@ -104,21 +104,28 @@ itemCondition_test_cell = num2cell(Stims.itemCond_test);
 % test_ap1_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), test_ap1, alpha1, 'UniformOutput', 0);
 test_ap1_wAlpha = cellfun(@(x, n) cat(3,x,x,x,n), test_ap1, alpha1, 'UniformOutput', 0);
 
-
 [test_ap2, ~, alpha2] = arrayfun(@(x) imread( [p.root,...
     '/stims/expt/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap2'], 'png'), ...
     trialsTest, 'UniformOutput', 0);
-testOne = cellfun(@(x, n) cat(3,x,x,x,n), test_ap2, alpha2, 'UniformOutput', 0);
+testOne = cellfun(@(x, n) x+n, test_ap1, test_ap2, 'UniformOutput', 0);
+afc1alpha = cellfun(@(x, n) x+n, alpha1, alpha2, 'UniformOutput', 0);
+% testOne = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), testOne, afc1alpha, 'UniformOutput', 0);
+testOne = cellfun(@(x, n) cat(3,x,x,x,n), testOne, afc1alpha, 'UniformOutput', 0);
+% test_ap2_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), test_ap2, alpha2, 'UniformOutput', 0);
 
 [test_ap3, ~, alpha3] = arrayfun(@(x) imread( [p.root,...
     '/stims/expt/apertures/object', num2str(x.pair), '_paired', num2str(x.name), '_ap3'], 'png'), ...
     trialsTest, 'UniformOutput', 0);
-testTwo = cellfun(@(x, n) cat(3,x,x,x,n), test_ap3, alpha3, 'UniformOutput', 0);
+testTwo = cellfun(@(x, n) x+n, test_ap1, test_ap3, 'UniformOutput', 0);
+afc2alpha = cellfun(@(x, n) x+n, alpha1, alpha3, 'UniformOutput', 0);
+% testTwo = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), testTwo, afc2alpha, 'UniformOutput', 0);
+testTwo = cellfun(@(x, n) cat(3,x,x,x,n), testTwo, afc2alpha, 'UniformOutput', 0);
+% test_ap3_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), test_ap3, alpha3, 'UniformOutput', 0);
 
 % make textures of images
 cellTestAp1 = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), test_ap1_wAlpha));
-cellTestAp2 = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), testOne));
-cellTestAp3 = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), testTwo));
+cellTestOne = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), testOne));
+cellTestTwo = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), testTwo));
 
 % name textures of each stim
 [trialsTest(1:p.nItems.unique).ap1] = deal(cellTestAp1{:}); 
@@ -126,9 +133,8 @@ cellTestAp3 = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), testTwo));
 % the following get randomly chosen so that each are presented on left and
 % right sides of screen during 2afc (don't want the 1 / 2 pair to always be
 % on the same side)
-[trialsTest(1:p.nItems.unique).ap2] = deal(cellTestAp2{:}); 
-[trialsTest(1:p.nItems.unique).ap3] = deal(cellTestAp3{:});
-
+[trialsTest(1:p.nItems.unique).p1] = deal(cellTestOne{:}); 
+[trialsTest(1:p.nItems.unique).p2] = deal(cellTestTwo{:}); 
 
 %% finally, make textures for practice phase
 p.practiceOrder_study = randperm(p.nItems.practice)+p.nItems.unique; 
@@ -169,12 +175,18 @@ pracTest_ap1_wAlpha = cellfun(@(x, n) cat(3,x,x,x,n), practiceTest_ap1, pracAlph
 [practiceTest_ap2, ~, pracAlpha2] = arrayfun(@(x) imread( [p.root,...
     '/stims/practice/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap2'], 'png'), ...
     trialsPractice_test, 'UniformOutput', 0);
-pracTestOne = cellfun(@(x, n) cat(3,x,x,x,n), practiceTest_ap2, pracAlpha2, 'UniformOutput', 0);
+pracTestOne = cellfun(@(x, n) x+n, practiceTest_ap1, practiceTest_ap2, 'UniformOutput', 0);
+pracAlphaOne = cellfun(@(x, n) x+n, pracAlpha1, pracAlpha2, 'UniformOutput', 0);
+% pracTestOne = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), pracTestOne, pracAlphaOne, 'UniformOutput', 0);
+pracTestOne = cellfun(@(x, n) cat(3,x,x,x,n), pracTestOne, pracAlphaOne, 'UniformOutput', 0);
 
 [practiceTest_ap3, ~, pracAlpha3] = arrayfun(@(x) imread( [p.root,...
     '/stims/practice/apertures/object', num2str(x.pair), '_paired', num2str(x.name), '_ap3'], 'png'), ...
     trialsPractice_test, 'UniformOutput', 0);
-pracTestTwo = cellfun(@(x, n) cat(3,x,x,x,n), practiceTest_ap3, pracAlpha3, 'UniformOutput', 0);
+pracTestTwo = cellfun(@(x, n) x+n, practiceTest_ap1, practiceTest_ap3, 'UniformOutput', 0);
+pracAlphaTwo = cellfun(@(x, n) x+n, pracAlpha1, pracAlpha3, 'UniformOutput', 0);
+% pracTestTwo = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), pracTestTwo, pracAlphaTwo, 'UniformOutput', 0);
+pracTestTwo = cellfun(@(x, n) cat(3,x,x,x,n), pracTestTwo, pracAlphaTwo, 'UniformOutput', 0);
 
 
 % make textures of images
@@ -188,8 +200,8 @@ cellpracTestTwo = num2cell(cellfun(@(x) Screen('MakeTexture',p.window,x), pracTe
 % the following get randomly chosen so that each are presented on left and
 % right sides of screen during 2afc (don't want the 1 / 2 pair to always be
 % on the same side)
-[trialsPractice_test(1:p.nItems.practice).ap2] = deal(cellpracTestOne{:}); 
-[trialsPractice_test(1:p.nItems.practice).ap3] = deal(cellpracTestTwo{:}); 
+[trialsPractice_test(1:p.nItems.practice).p1] = deal(cellpracTestOne{:}); 
+[trialsPractice_test(1:p.nItems.practice).p2] = deal(cellpracTestTwo{:}); 
 
 
 p.stimTab=Stims;

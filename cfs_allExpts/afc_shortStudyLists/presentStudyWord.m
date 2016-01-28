@@ -134,7 +134,7 @@ for tick=1:length(texAlpha)
     Screen('FillRect',p.window,255,CenterRect([0 0 8 8],p.rightRect));
     
     % draw word
-    Screen(p.window,'DrawFormattedText',stimWord,'center','center',[0,0,0]);
+    DrawFormattedText(p.window,stimWord,'center','center',[0,0,0]);
     
     
     %----------------------------------------------------------------------
@@ -153,7 +153,7 @@ for tick=1:length(texAlpha)
     Screen('FillRect',p.window,255,CenterRect([0 0 8 8],p.rightRect));
     
     % draw word
-    Screen(p.window,'DrawFormattedText',stimWord,'center','center',[0,0,0]);
+    DrawFormattedText(p.window,stimWord,'center','center',[0,0,0]);
         
     % incriment flipper counter while flipping
     Screen('DrawingFinished',p.window);
@@ -170,7 +170,7 @@ for tick=1:length(texAlpha)
     end
     
 end
-Screen('Close');
+% Screen('Close');
 
 
 p.timing.downStudy_whole(trial) = GetSecs;

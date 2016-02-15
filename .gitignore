@@ -6,3 +6,6 @@ $ cat .gitignore
 *.mat
 *.xlsx
 *.jpg
+
+#also ignore administrator files
+admin

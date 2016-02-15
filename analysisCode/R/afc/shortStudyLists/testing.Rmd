@@ -1,0 +1,174 @@
+---
+title: "testing"
+author: "pss"
+date: "February 3, 2016"
+output: pdf_document
+---
+
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+pas.mean_cfs.item = array(999,c(nPresent,nSubs,nItems))
+pas.n_cfs.item = array(999,c(nPresent,nSubs,nItems))
+for (sub in 1:nSubs){
+  for (item in 1:nItems) {
+    
+    if (data[data$whichItem==item
+             & data$subject==sub
+             ,]$condition==3){
+      
+      # first present
+      pas.mean_cfs.item[1,sub,item] <- 
+        data[data$condition==3
+             & data$subject==sub
+             & data$whichItem==item,]$studyResp-1
+      
+      pas.n_cfs.item[1,sub,item] <- 
+        dim(data[data$condition==3
+                 & data$subject==sub
+                 & data$whichItem==item,])[1]
+      
+      
+      # second present
+      pas.mean_cfs.item[2,sub,item] <- 
+        data[data$condition==3
+             & data$subject==sub
+             & data$whichItem==item,]$studyResp2-1
+      
+      pas.n_cfs.item[2,sub,item] <- 
+        dim(data[data$condition==3
+                 & data$subject==sub
+                 & data$whichItem==item,])[1]
+      
+      
+      # third present
+      pas.mean_cfs.item[3,sub,item] <- 
+        data[data$condition==3
+             & data$subject==sub
+             & data$whichItem==item,]$studyResp3-1
+      
+      pas.n_cfs.item[3,sub,item] <- 
+        dim(data[data$condition==3
+                 & data$subject==sub
+                 & data$whichItem==item,])[1]
+    }
+  }
+  
+}
+
+pas_sub_item_plot = array(999,c(nPresent,nInCond*nSubs))
+item = 0
+for (sub in 1:nSubs){
+  for (trl in 1:nItems){
+    
+    if((pas.mean_cfs.item[,sub,trl])!=999){
+      item = item+1
+      pas_sub_item_plot[,item] <- pas.mean_cfs.item[,sub,trl]
+    }
+  }
+}
+
+
+```
+
+
+```{r,echo=FALSE,warning=FALSE}
+par(mfrow=c(1,1))
+df <- data.frame(first = pas_sub_item_plot[1,]
+                 ,second = pas_sub_item_plot[2,]
+                 ,sub=rep(1:6,each=50))
+
+numPlot<-ggplot(data = df,aes(x = first,y = second)) + stat_sum(aes(size = ..n..))
+numPlot + ggtitle("num(PAS 2 & PAS 1) of items under cfs, all subs")
+
+
+```
+
+```{r, echo=FALSE,warning=FALSE}
+pasCondi.mean.item = array(999,c(nSubs,nPAS,nItems))
+pasCondi.n.item = array(999,c(nSubs,nPAS,nItems))
+for (sub in 1:nSubs){
+  for (pas in 1:nConds){
+    for (item in 1:nItems) {
+      
+      if (length(data[data$whichItem==item
+                      & data$subject==sub
+                      & data$condition==3
+                      ,]$studyResp==pas)!=0 
+          && data[data$whichItem==item
+                 & data$subject==sub
+                 & data$condition==3
+                 ,]$studyResp==pas) {
+        
+        
+        # given first resp of pas, what was third?
+        pasCondi.mean.item[sub,pas,item] <- 
+          data[data$studyResp==pas
+               & data$condition==3
+               & data$subject==sub
+               & data$whichItem==item,]$studyResp3-1
+        
+        pasCondi.n.item[sub,pas,item] <- 
+          dim(data[data$studyResp==pas
+                   & data$condition==3
+                   & data$subject==sub
+                   & data$whichItem==item,])[1]
+        
+      }
+    }
+  }
+}
+
+pas_condi_plot = array(999,c(nInCond*nSubs,nPAS))
+item = 0
+for (sub in 1:nSubs){
+  for (pas in 1:nPAS){
+    for (trl in 1:nItems){
+      
+      if(!is.na(pasCondi.mean.item[sub,pas,trl])){
+        if((pasCondi.mean.item[sub,pas,trl])!=999){
+          item = item+1
+          pas_condi_plot[item,pas] <- pasCondi.mean.item[sub,pas,trl]
+        }
+      }
+    }
+  }
+}
+
+# final form?
+tally <- array(0,c(nPAS,nPAS))
+sum(pas_condi_plot[,1]==3)
+
+for (pas in 1:nPAS){
+  for(sec in 1:nPAS){
+  tally[pas,sec] <- sum(pas_condi_plot[,pas]==sec-1)
+  }
+}
+
+
+barplot(t(tally)
+        , beside = TRUE
+        , main = "num(PAS_2 | PAS_1)"
+        , legend.text = c('to 0', 'to 1', 'to 2', 'to 3')
+        , args.legend = list(x="topleft")
+        , names.arg = c('0', '1', '2', '3')
+)
+
+tally_prop <- tally/rowSums(tally)
+
+```
+
+In the following graph, note that the highest of each group of bars shifts one bar to the right for each gropu (0-3). This says that, for a PAS of 3 on the first presentation, the most likely PAS on the second is 3. Similarly, for a PAS of 2 on the first presentation, the most likely is a 2 on the second (followed by a 1). For 1 on the first, mostly likely is a second 1 (followed by 2). For 0, the most likely is split between 0 and 1.
+```{r,echo=FALSE,warning=FALSE}
+barplot(t(tally_prop)
+        , beside = TRUE
+        , main = "p(PAS_2 | PAS_1)"
+        , ylim = c(0,1)
+        , legend.text = c('to 0', 'to 1', 'to 2', 'to 3')
+        , args.legend = list(x="topleft")
+        , names.arg = c('0', '1', '2', '3')
+)
+
+
+```

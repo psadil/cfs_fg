@@ -1,4 +1,4 @@
-This folder contains the necessary files to run a behavioral version of the
+This folder contains most of the necessary files to run a behavioral version of the
 process dissociation procedure for visual recollection. During test, all items
 will be aperture stimuli. However, there are three different study conditions. 
 First, baseline in which the object isn't studied (foil). Binoc codintion =>
@@ -8,13 +8,22 @@ study while masked under CFS (should increase only visual recollection).
 Analysis will be done based on state-trace style plot of Inclusion vs Exclusion
  -> will probably want to include classic vis recollection vs epi recollection, 
 	but the main thrust will be simple, uncalculated rates during In and Ex
+ -> an ANOVA of some sort will probably also be necessary, but I'm not quite
+    sure how to set that up yet...
+
+NOTE: Requires stimulus files, downloaded from osf https://osf.io/9f38c/
+     -> In general, many helpful files can be found on the osf
+
 
 ***************************************************************************
 FOLDER STRUCTURE:
 
 admin -> useful files for working with RAs (including consent forms)
+     15feb2016, ps -> moved to osf 
+
 analysisCode -> MATLAB and R files for working with subjectData
 cfs_allExpts -> the actual experimental files
+
 
 NOTE: due to lack of binary files (i.e., the stimuli), these DO NOT contain
    all of the necessary files to actually run the experiments.

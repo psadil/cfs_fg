@@ -5,6 +5,7 @@ $ cat .gitignore
 
 *.mat
 *.xlsx
+*.xls
 *.jpg
 
 #also ignore administrator files

@@ -24,7 +24,9 @@ subIndex = 0;
 % 21 -- not responding
 % 24 -- not responding...
 % 27 -- not responding...
-missingData = [2,4:6,8,12,13,17,19,21,24,27];
+% missingData = [2,4:6,8,12,13,17,19,21,24,27];
+missingData = [2,4,8,12,17];
+
 
 for subNum = firstSub:lastSub
     subIndex=subIndex+1;
@@ -35,7 +37,7 @@ for subNum = firstSub:lastSub
         continue;
     end
     
-    fileName = [pwd '\subjectData\scored\Subject' num2str(subNum) 'CFS_obj_2AFC_ss1_scored.mat'];
+    fileName = [pwd '\subjectData\scored\Subject' num2str(subNum) 'CFS_obj_2AFC_ss1_scored_noCheck.mat'];
     load(fileName)
     
     %% Useful variables to be used as filters for the data
@@ -137,7 +139,7 @@ outPutTable = table(subject,condition,studyResp,studyResp2,studyResp3...
 % fileName = [pwd '\Subject Data\Bayes_objects_apertures.mat'];
 % save(fileName, 'heirPD');
 
-fileName = [pwd,'\subjectData\exported\cfs_obj_2afc_ss1.dat'];
+fileName = [pwd,'\subjectData\exported\cfs_obj_2afc_ss1_noCheck.dat'];
 writetable(outPutTable,fileName)
 
 end

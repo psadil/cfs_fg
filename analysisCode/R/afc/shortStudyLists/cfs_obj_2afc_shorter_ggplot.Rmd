@@ -11,213 +11,17 @@ Version: presentation in lists of 16. Items studied x3 times
 Note that second/third presentation was in the same order as first presentations
 all items studied for total of .5 seconds (including ramping up and down)
 
-
+these data include subjects that didn't provide many recall choices
 
 ```{r, preamble, echo=FALSE}
 # preamble
 
 library(ggplot2)
 library(plyr)
+source("C:/Users/PSadil/Documents/R/fns.R")
 
+setwd("D:/googleDrive/uMass/firstYear/behavioralExpts/pSadil/processDissociation/CFS/cfs_fg/analysisCode/R/afc/shortStudyLists")
 
-error.bar <- function(x, y, upper, lower=upper, length=0.1,...){
-  if(length(x) != length(y) | length(y) !=length(lower) | length(lower) != length(upper))
-    stop("vectors must be same length")
-  arrows(x,y+upper, x, y-lower, angle=90, code=3, length=length, ...)
-}
-
-logit<-function(x){
-  y <- log(x/(1-x))
-  return(y)
-}
-
-withinSubError <- function(df, pas, nConds){
-  x_sj <- aggregate( named ~
-                       subject:condition
-                     ,data=df[df$studyResp3==pas,],FUN='mean')
-  
-  x_s <- aggregate( named ~
-                      subject
-                    ,data=df[df$studyResp3==pas,],FUN='mean')
-  
-  x <- mean(df$named)
-  
-  nSubs <- max(as.double(x_sj$subject))
-  y_sj <- data.frame(subject=rep(1:nSubs,each=nConds)
-                     ,condition=rep(1:nConds,times=nSubs)
-                     ,named=rep(0,nSubs*nConds)
-  )
-  
-  for (sub in 1:nSubs) {
-    for (cond in 1:nConds){
-      
-      if(length(x_sj[x_sj$subject==sub & x_sj$condition==cond,]$named)!=0){
-        
-        y_sj[y_sj$subject==sub
-             & y_sj$condition==cond,]$named <- x_sj[x_sj$subject==sub
-                                                    & x_sj$condition==cond,]$named -
-        x_s[x_s$subject==sub,]$named + x
-        
-        
-        
-      }
-      
-      
-    }
-  }
-  
-  # correction factor
-  sem_cf <- sqrt(aggregate(named ~ condition,data=y_sj,FUN='var')$named *
-                   (nConds / (nConds-1))) / sqrt(nSubs)
-  
-  # also grab original sem
-  sem <- sqrt(aggregate(named ~ condition,data=x_sj,FUN='var')$named) / sqrt(nSubs)
-  
-  
-  result = list(y_sj=y_sj,sem=sem,sem_cf=sem_cf)
-  return(result)
-}
-
-
-## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
-##   data: a data frame.
-##   measurevar: the name of a column that contains the variable to be summariezed
-##   groupvars: a vector containing names of columns that contain grouping variables
-##   na.rm: a boolean that indicates whether to ignore NA's
-##   conf.interval: the percent range of the confidence interval (default is 95%)
-summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
-                      conf.interval=.95, .drop=TRUE) {
-    library(plyr)
-
-    # New version of length which can handle NA's: if na.rm==T, don't count them
-    length2 <- function (x, na.rm=FALSE) {
-        if (na.rm) sum(!is.na(x))
-        else       length(x)
-    }
-
-    # This does the summary. For each group's data frame, return a vector with
-    # N, mean, and sd
-    datac <- ddply(data, groupvars, .drop=.drop,
-      .fun = function(xx, col) {
-        c(N    = length2(xx[[col]], na.rm=na.rm),
-          mean = mean   (xx[[col]], na.rm=na.rm),
-          sd   = sd     (xx[[col]], na.rm=na.rm)
-        )
-      },
-      measurevar
-    )
-
-    # Rename the "mean" column    
-    datac <- rename(datac, c("mean" = measurevar))
-
-    datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
-
-    # Confidence interval multiplier for standard error
-    # Calculate t-statistic for confidence interval: 
-    # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
-    ciMult <- qt(conf.interval/2 + .5, datac$N-1)
-    datac$ci <- datac$se * ciMult
-
-    return(datac)
-}
-
-## Norms the data within specified groups in a data frame; it normalizes each
-## subject (identified by idvar) so that they have the same mean, within each group
-## specified by betweenvars.
-##   data: a data frame.
-##   idvar: the name of a column that identifies each subject (or matched subjects)
-##   measurevar: the name of a column that contains the variable to be summariezed
-##   betweenvars: a vector containing names of columns that are between-subjects variables
-##   na.rm: a boolean that indicates whether to ignore NA's
-normDataWithin <- function(data=NULL, idvar, measurevar, betweenvars=NULL,
-                           na.rm=FALSE, .drop=TRUE) {
-    library(plyr)
-
-    # Measure var on left, idvar + between vars on right of formula.
-    data.subjMean <- ddply(data, c(idvar, betweenvars), .drop=.drop,
-     .fun = function(xx, col, na.rm) {
-        c(subjMean = mean(xx[,col], na.rm=na.rm))
-      },
-      measurevar,
-      na.rm
-    )
-
-    # Put the subject means with original data
-    data <- merge(data, data.subjMean)
-
-    # Get the normalized data in a new column
-    measureNormedVar <- paste(measurevar, "_norm", sep="")
-    data[,measureNormedVar] <- data[,measurevar] - data[,"subjMean"] +
-                               mean(data[,measurevar], na.rm=na.rm)
-
-    # Remove this subject mean column
-    data$subjMean <- NULL
-
-    return(data)
-}
-
-
-
-
-## Summarizes data, handling within-subjects variables by removing inter-subject variability.
-## It will still work if there are no within-S variables.
-## Gives count, un-normed mean, normed mean (with same between-group mean),
-##   standard deviation, standard error of the mean, and confidence interval.
-## If there are within-subject variables, calculate adjusted values using method from Morey (2008).
-##   data: a data frame.
-##   measurevar: the name of a column that contains the variable to be summariezed
-##   betweenvars: a vector containing names of columns that are between-subjects variables
-##   withinvars: a vector containing names of columns that are within-subjects variables
-##   idvar: the name of a column that identifies each subject (or matched subjects)
-##   na.rm: a boolean that indicates whether to ignore NA's
-##   conf.interval: the percent range of the confidence interval (default is 95%)
-summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=NULL,
-                            idvar=NULL, na.rm=FALSE, conf.interval=.95, .drop=TRUE) {
-
-  # Ensure that the betweenvars and withinvars are factors
-  factorvars <- vapply(data[, c(betweenvars, withinvars), drop=FALSE],
-    FUN=is.factor, FUN.VALUE=logical(1))
-
-  if (!all(factorvars)) {
-    nonfactorvars <- names(factorvars)[!factorvars]
-    message("Automatically converting the following non-factors to factors: ",
-            paste(nonfactorvars, collapse = ", "))
-    data[nonfactorvars] <- lapply(data[nonfactorvars], factor)
-  }
-
-  # Get the means from the un-normed data
-  datac <- summarySE(data, measurevar, groupvars=c(betweenvars, withinvars),
-                     na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
-
-  # Drop all the unused columns (these will be calculated with normed data)
-  datac$sd <- NULL
-  datac$se <- NULL
-  datac$ci <- NULL
-
-  # Norm each subject's data
-  ndata <- normDataWithin(data, idvar, measurevar, betweenvars, na.rm, .drop=.drop)
-
-  # This is the name of the new column
-  measurevar_n <- paste(measurevar, "_norm", sep="")
-
-  # Collapse the normed data - now we can treat between and within vars the same
-  ndatac <- summarySE(ndata, measurevar_n, groupvars=c(betweenvars, withinvars),
-                      na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
-
-  # Apply correction from Morey (2008) to the standard error and confidence interval
-  #  Get the product of the number of conditions of within-S variables
-  nWithinGroups    <- prod(vapply(ndatac[,withinvars, drop=FALSE], FUN=nlevels,
-                           FUN.VALUE=numeric(1)))
-  correctionFactor <- sqrt( nWithinGroups / (nWithinGroups-1) )
-
-  # Apply the correction factor
-  ndatac$sd <- ndatac$sd * correctionFactor
-  ndatac$se <- ndatac$se * correctionFactor
-  ndatac$ci <- ndatac$ci * correctionFactor
-
-  # Combine the un-normed means with the normed results
-  merge(datac, ndatac)
-}
 ```
 
 ```{r,data,echo=FALSE,warning=FALSE}
@@ -226,21 +30,18 @@ summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=
 
 wd <- getwd()
 
-dataFile <- paste(wd, "/cfs_obj_2afc_ss1.dat", sep="")
+dataFile <- paste(wd, "/cfs_obj_2afc_ss1_noCheck.dat", sep="")
 # find the data that was generated from the matlab files
 data <- read.csv(dataFile)
 
 # add 1 to study resp because participants were instructed to use 0-3
-data$studyResp = data$studyResp+1
-data$studyResp2 = data$studyResp2+1
-data$studyResp3 = data$studyResp3+1
 
 #data[data$studyResp3==1e+05,]$studyResp3 = 1
 #data$studyResp3 <- as.factor(data$studyResp3)
 
 
 nConds = max(data$condition,na.rm=TRUE)
-nPAS = max(data[data$studyResp < 1000,]$studyResp,na.rm=TRUE)
+nPAS = max(data[data$studyResp < 1000,]$studyResp,na.rm=TRUE) + 1
 nItems = max(data$whichItem,na.rm=TRUE)
 nSubs = max(data$subject,na.rm=TRUE)
 nTrials = max(data$trial,na.rm=TRUE)
@@ -254,6 +55,11 @@ data$trial = as.factor(data$trial)
 data$whichItem = as.factor(data$whichItem)
 data$subject = as.factor(data$subject)
 data$condition = as.factor(data$condition)
+data$studyResp = as.factor(data$studyResp)
+data$studyResp2 = as.factor(data$studyResp2)
+data$studyResp3 = as.factor(data$studyResp3)
+
+
 #data$condition = as.numeric(data$condition)
 # don't want PAS as a factor, because there are 
 # vastly different numbers of each kind of response
@@ -268,23 +74,11 @@ pasResps <- c("0","1","2","3")
 data_trim <- na.omit(data)
 
 
-```
-
-
-```{r, cutoff}
 cutoff = 3 # only look at CFS with PAS 2 or 1
 nPresent = 3 # presented 3 times
 nStudy = nTrials * nPresent
 
 ```
-
-
-The following is a graph of the proportion of times that an item was named,
-conditioned on a given PAS response.
-
-Note that eror bars are weird because they're just simple SEMs. Currently unclear about the best ways to make error bars for variables bounded between 1 and 0.
-
-Additionally, it is somewhat misleading to include error bars across a within-subjects factor. They could be higher than depicted, and do not accurately reflect whatever statistics will eventually be performed.
 
 
 ```{r, withinErrorBars, echo=FALSE,warning=FALSE}
@@ -304,14 +98,13 @@ Additionally, it is somewhat misleading to include error bars across a within-su
 
 
 dfwc3 <- summarySEwithin(data, measurevar="named"
-                        , withinvars=c("condition","studyResp3"),
-                        idvar="subject", na.rm=FALSE, conf.interval=.95)
+                         , withinvars=c("condition","studyResp3"),
+                         idvar="subject", na.rm=FALSE, conf.interval=.95)
 dfwc3<-ddply(dfwc3,.(condition),transform,prop=N/sum(N))
 
-
 dfwc1 <- summarySEwithin(data, measurevar="named"
-                        , withinvars=c("condition","studyResp"),
-                        idvar="subject", na.rm=FALSE, conf.interval=.95)
+                         , withinvars=c("condition","studyResp"),
+                         idvar="subject", na.rm=FALSE, conf.interval=.95)
 dfwc1<-ddply(dfwc1,.(condition),transform,prop=N/sum(N))
 
 ```
@@ -322,12 +115,20 @@ dfwc3
 
 ```
 
+
+NOTE: 
+
+1. in these bar graphs, 1e+05 indicates the value that was given to foils (so, there should only be bars over the 1e+05 studyResp for the foil condition).
+2. the NA studyResp are missing responses.
+3. although these error bars more accurately reflect the within-subjects nature of the study condition factor, the y-axis is still bounded between [0,1]. So, I still need to figure out a reasonable way to plot those values...
+
+
 ```{r,echo=FALSE,warning=FALSE}
-ggplot(dfwc3, aes(x=studyResp3, y=named_norm)) +
+ggplot(dfwc3, aes(x=studyResp3, y=named)) +
   geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=named-ci, ymax=named+ci)) +
   facet_grid(. ~ condition ) +
-    xlab("PAS") + 
+  xlab("PAS") + 
   ylab("named") +
   ggtitle("% named for each condition, given third PAS")
 
@@ -338,7 +139,7 @@ ggplot(dfwc3, aes(x=studyResp3, y=prop)) +
   geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=prop-ci, ymax=prop+ci)) +
   facet_grid(. ~ condition ) +
-    xlab("PAS") + 
+  xlab("PAS") + 
   ylab("proportion") +
   ggtitle("proportion of each PAS (third presentation) in each condition")
 
@@ -348,11 +149,11 @@ ggplot(dfwc3, aes(x=studyResp3, y=prop)) +
 looking at first presentations
 
 ```{r,echo=FALSE,warning=FALSE}
-ggplot(dfwc1, aes(x=studyResp, y=named_norm)) +
+ggplot(dfwc1, aes(x=studyResp, y=named)) +
   geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=named-ci, ymax=named+ci)) +
   facet_grid(. ~ condition ) +
-    xlab("PAS") + 
+  xlab("PAS") + 
   ylab("named") +
   ggtitle("% named for each condition, given first PAS")
 
@@ -363,830 +164,244 @@ ggplot(dfwc1, aes(x=studyResp, y=prop)) +
   geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=prop-ci, ymax=prop+ci)) +
   facet_grid(. ~ condition ) +
-    xlab("PAS") + 
+  xlab("PAS") + 
   ylab("proportion") +
   ggtitle("proportion of each PAS (first presentation) in each condition")
 
 ```
 
 
+```{r, pas_conditional,echo=FALSE,warning=FALSE}
+dfwc_pas <- summarySEwithin(data, measurevar="named", withinvars=c("studyResp","studyResp3"),
+                            idvar="subject", na.rm=FALSE, conf.interval=.95)
+
+dfwc_pas<-ddply(dfwc_pas,.(studyResp3),transform,p3Gp1=N/sum(N))
+
+dfwc_pas_cfs <- summarySEwithin(data[data$condition==3,], measurevar="named",                          withinvars=c("studyResp","studyResp3"),
+                                idvar="subject", na.rm=FALSE, conf.interval=.95)
+
+dfwc_pas_cfs<-ddply(dfwc_pas_cfs,.(studyResp3),transform,p3Gp1=N/sum(N))
+
+
+
+
+```
+
+
+```{r,pas_condi_graph,echo=FALSE,warning=FALSE}
+
+ggplot(dfwc_pas, aes(x=studyResp3, y=p3Gp1)) +
+  geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
+  facet_grid(. ~ studyResp ) +
+  facet_wrap(~ studyResp, ncol=3) +
+  xlab("PAS") + 
+  ylab("p(PAS_3|PAS_1)") +
+  ggtitle(" Proportion of thrid PAS given first PAS ")
+
+
+```
+
+NOTE: the above graph is somewhat confounded by condition. the following graph is looking only at study responses to the cfs condition
+
+
+
+```{r,pas_condi_,echo=FALSE,warning=FALSE}
+
+ggplot(dfwc_pas_cfs, aes(x=studyResp3, y=p3Gp1)) +
+  geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
+  facet_grid(. ~ studyResp ) +
+  facet_wrap(~ studyResp, ncol=3) +
+  xlab("PAS") + 
+  ylab("p(PAS_3|PAS_1)") +
+  ggtitle(" Proportion of thrid PAS given first PAS ")
+
+
+```
+
+
 now, scatter plots
 
-```{r,echo=FALSE}
-# look at recal rates for pas < cutoff, collapsed across subs
-rRates.cond_mean = matrix(0,nrow=nConds,ncol=nPresent)
-rRates.cond_sem = matrix(0,nrow=nConds,ncol=nPresent)
-rRates.cond_n = matrix(0,nrow=nConds,ncol=nPresent)
-for (cond in 1:nConds) {
-  
-  if (cond == 3){
-    rRates.cond_mean[cond,1] <- 
-      mean(data_trim[data_trim$condition==cond &
-                       (data_trim$studyResp == 3 ),]$named,
-           na.rm=TRUE)
-    
-    rRates.cond_n[cond,1] <- 
-      dim(data_trim[data_trim$condition==cond & 
-                      (data_trim$studyResp == 3 ),])[1]
-    
-    rRates.cond_mean[cond,2] <- 
-      mean(data_trim[data_trim$condition==cond &
-                       (data_trim$studyResp2 == 3),]$named,
-           na.rm=TRUE)
-    
-    rRates.cond_n[cond,2] <- 
-      dim(data_trim[data_trim$condition==cond & 
-                      (data_trim$studyResp2 == 3 ),])[1]
-    
-    
-    # third presentation
-    rRates.cond_mean[cond,3] <- 
-      mean(data_trim[data_trim$condition==cond &
-                       (data_trim$studyResp3 == 3),]$named,
-           na.rm=TRUE)
-    
-    rRates.cond_n[cond,3] <- 
-      dim(data_trim[data_trim$condition==cond & 
-                      (data_trim$studyResp3 == 3 ),])[1]
-    
-    
-  } else {
-    rRates.cond_mean[cond,] <- 
-      mean(data_trim[data_trim$condition==cond,]$named,
-           na.rm=TRUE)
-    
-    rRates.cond_n[cond,] <- 
-      dim(data_trim[data_trim$condition==cond,])[1]
-  }
-  
-  # var = n*p*(1-p)
-  rRates.cond_sem[cond,] <-
-    sqrt(rRates.cond_n[cond,] * rRates.cond_mean[cond,] * 
-           (1- rRates.cond_mean[cond,])) / 
-    sqrt(rRates.cond_n[cond,])
-  
-}
 
-# look at 2afc rates for pas < 3, collapsed across subs
-afcRates.cond_mean = matrix(0,nrow=nConds,ncol=nPresent)
-afcRates.cond_sem = matrix(0,nrow=nConds,ncol=nPresent)
-afcRates.cond_n = matrix(0,nrow=nConds,ncol=nPresent)
-for (cond in 1:nConds) {
-  
-  if (cond == 3){
-    afcRates.cond_mean[cond,1] <- 
-      mean(data_trim[data_trim$condition==cond &
-                       (data_trim$studyResp == 3),]$afc,
-           na.rm=TRUE)
-    
-    afcRates.cond_n[cond,1] <- 
-      dim(data_trim[data_trim$condition==cond & 
-                      (data_trim$studyResp == 3 ),])[1]
-    
-    # second presentation
-    afcRates.cond_mean[cond,2] <- 
-      mean(data_trim[data_trim$condition==cond &
-                       (data_trim$studyResp2 == 3),]$afc,
-           na.rm=TRUE)
-    
-    afcRates.cond_n[cond,2] <- 
-      dim(data_trim[data_trim$condition==cond & 
-                      (data_trim$studyResp2 == 3 ),])[1]
-    
-    # third presentation
-    afcRates.cond_mean[cond,3] <- 
-      mean(data_trim[data_trim$condition==cond &
-                       (data_trim$studyResp3 == 3),]$afc,
-           na.rm=TRUE)
-    
-    afcRates.cond_n[cond,3] <- 
-      dim(data_trim[data_trim$condition==cond & 
-                      (data_trim$studyResp3 == 3 ),])[1]
-    
-    
-    
-  } else {
-    afcRates.cond_mean[cond,] <- 
-      mean(data_trim[data_trim$condition==cond,]$afc,
-           na.rm=TRUE)
-    
-    afcRates.cond_n[cond,] <- 
-      dim(data_trim[data_trim$condition==cond,])[1]
-  }
-  
-  # var = n*p*(1-p)
-  afcRates.cond_sem[cond,] <-
-    sqrt(afcRates.cond_n[cond,] * afcRates.cond_mean[cond,] * 
-           (1- rRates.cond_mean[cond,])) / 
-    sqrt(afcRates.cond_n[cond,])
-  
-}
+
+```{r,stateTrace_avg,warning=FALSE,echo=FALSE}
+afc_all <- summarySEwithin(data, measurevar="afc",
+                           withinvars=c("condition"),
+                           idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+name_all <- summarySEwithin(data, measurevar="named",
+                            withinvars=c("condition"),
+                            idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+
+toPlot_stAll <- cbind(named=name_all$named
+                      ,named_norm=name_all$named_norm
+                      ,ci_named=name_all$ci
+                      ,afc_all
+                      ,count=(afc_all$N+name_all$N)/2)
 
 ```
 
 
-```{r,echo=FALSE}
-# code for state trace plots
+```{r,st_plot_avg,warning=FALSE,echo=FALSE}
+pd <- position_dodge(0.001)
 
-# par(mfrow=c(1,1))
-# new <- plot(afcRates.cond_mean[,1],rRates.cond_mean[,1]
-#             , xlim = c(0,1)
-#             , ylim = c(0,1)
-#             , col = cols
-#             , xlab = 'prop 2afc correct'
-#             , ylab = 'recall rate'
-#             , main = 'PAS < cutoff (firstPresent), subs > 50% respond'
-# )
-# legend("topleft", legend = studyConds,
-#        col=cols,pch = 1,bty="n")
+ggplot(toPlot_stAll, aes(x=afc_norm, y=named_norm, colour=condition, group=condition)) +
+  geom_errorbar(aes(ymin=named_norm-ci_named, ymax=named_norm+ci_named), colour="black", width=.05, position=pd) +
+  geom_errorbarh(aes(xmin=afc_norm-ci, xmax=afc_norm+ci), colour="black", height = .05, position=pd) +
+  ylim(0,1) +
+  xlim(0,1) +
+  geom_point(position=pd, size=1)  +  #aes(size=count)
+  ggtitle("state trace, for each condition, collapsed across PAS") +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
+  theme(axis.ticks = element_blank(), axis.text.y = element_blank())
 
-
-# par(mfrow=c(1,1))
-# new <- plot(afcRates.cond_mean[,2],rRates.cond_mean[,2]
-#      , xlim = c(0,1)
-#      , ylim = c(0,1)
-#      , col = cols
-#      , xlab = 'prop 2afc correct'
-#      , ylab = 'recall rate'
-#      , main = 'PAS < cutoff (secondPresent), subs > 50% respond'
-# )
-# legend("topleft", legend = studyConds,
-#        col=cols,pch = 1,bty="n")
-# 
-# 
-# par(mfrow=c(1,1))
-# new <- plot(afcRates.cond_mean[,3],rRates.cond_mean[,3]
-#      , xlim = c(0,1)
-#      , ylim = c(0,1)
-#      , col = cols
-#      , xlab = 'prop 2afc correct'
-#      , ylab = 'recall rate'
-#      , main = 'PAS < cutoff (thirdPresent), subs > 50% respond'
-# )
-# legend("topleft", legend = studyConds,
-#        col=cols,pch = 1,bty="n")
 
 
 ```
-
-
-CFS performance is conditioned on having responded 0-2 at the third study opportunity.
-Binocular and Word is conditioned on having responded 3
-
-
-```{r, echo=FALSE}
-
-par(mfrow=c(1,1))
-# plot first point (to initilize graph)
-plot(  x = mean(data_trim[data_trim$condition==1,]$afc, na.rm=TRUE)
-       , y = mean(data_trim[data_trim$condition==1,]$named, na.rm=TRUE)
-       , xlim = c(0,1)
-       , ylim = c(0,1)
-       , col = cols[1]
-       , xlab = 'prop 2afc correct'
-       , ylab = 'recall rate'
-       , main = ' '
-)
-
-# plot remaining points of non-cfs conditions
-for (cond in c(2,4)){
-  points(  x = mean(data_trim[data_trim$condition==cond
-                              & data_trim$studyResp3==4
-                              ,]$afc, na.rm=TRUE)
-           , y = mean(data_trim[data_trim$condition==cond
-                                & data_trim$studyResp3==4
-                                ,]$named, na.rm=TRUE)
-           , col = cols[cond]
-           , pch = 1
-  )
-}
-
-for (resp in 1:4) {
-  points(  x = mean(data_trim[data_trim$condition==3 & data_trim$studyResp3==resp
-                              ,]$afc, na.rm=TRUE)
-           , y = mean(data_trim[data_trim$condition==3 & data_trim$studyResp3==resp
-                                ,]$named, na.rm=TRUE)
-           , col = cols[3]
-           , pch = resp+1
-  )
-}
-
-legend("left", legend = 
-         c(studyConds[1],rep(studyConds[c(2,4)],each=1),rep(studyConds[3],4))
-       ,col=c(cols[1],rep(cols[c(2,4)],each=1),rep(cols[3],4))
-       ,pch = c(rep(1,3),2:5),bty="n")
-
-
-```
-
-
-comparing PAS responses for words and binocular. Note, many possible points are missing. Those correspond to cases that never occurred, like a rating of 1 to the binocular condition
-
-```{r, echo=FALSE}
-
-par(mfrow=c(1,1),mar=c(1,1,1,1)+0.1)
-# plot first point (to initilize graph)
-plot(  x = mean(data_trim[data_trim$condition==1,]$afc, na.rm=TRUE)
-       , y = mean(data_trim[data_trim$condition==1,]$named, na.rm=TRUE)
-       , xlim = c(0,1)
-       , ylim = c(0,1)
-       , col = cols[1]
-       , xlab = 'prop 2afc correct'
-       , ylab = 'recall rate'
-       , main = ' '
-)
-
-# plot remaining points of non-cfs conditions
-for (cond in c(2,4)){
-  for (resp in 1:4){
-    points(  x = mean(data_trim[data_trim$condition==cond
-                                & data_trim$studyResp3==resp
-                                ,]$afc, na.rm=TRUE)
-             , y = mean(data_trim[data_trim$condition==cond
-                                  & data_trim$studyResp3==resp
-                                  ,]$named, na.rm=TRUE)
-             , col = cols[cond]
-             , pch = resp+1
-    )
-  }
-}
-
-for (resp in 1:4) {
-  points(  x = mean(data_trim[data_trim$condition==3 & data_trim$studyResp3==resp
-                              ,]$afc, na.rm=TRUE)
-           , y = mean(data_trim[data_trim$condition==3 & data_trim$studyResp3==resp
-                                ,]$named, na.rm=TRUE)
-           , col = cols[3]
-           , pch = resp+1
-  )
-}
-
-legend("left", legend = 
-         c(studyConds[1],rep(studyConds[c(2,4)],each=4),rep(studyConds[3],4))
-       ,col=c(cols[1],rep(cols[c(2,4)],each=4),rep(cols[3],4))
-       ,pch = c(1,rep(2:5,times=3)),bty="n")
-
-
-```
-
-
-
-
-
-
-
-
-Plot just the average of CFS, given responses below 3
-
-```{r, echo=FALSE}
-
-par(mfrow=c(1,1))
-# plot first point (to initilize graph)
-plot(  x = mean(data_trim[data_trim$condition==1,]$afc, na.rm=TRUE)
-       , y = mean(data_trim[data_trim$condition==1,]$named, na.rm=TRUE)
-       , xlim = c(0,1)
-       , ylim = c(0,1)
-       , col = cols[1]
-       , xlab = 'prop 2afc correct'
-       , ylab = 'recall rate'
-       , main = ' '
-)
-
-# plot remaining points of non-cfs conditions
-for (cond in c(2,4)){
-  points(  x = mean(data_trim[data_trim$condition==cond,]$afc, na.rm=TRUE)
-           , y = mean(data_trim[data_trim$condition==cond,]$named, na.rm=TRUE)
-           , col = cols[cond]
-  )
-}
-
-points(  x = mean(data_trim[data_trim$condition==3 
-                            & (data_trim$studyResp3==1 | data_trim$studyResp3==2 | data_trim$studyResp3==3) 
-                            ,]$afc, na.rm=TRUE)
-         , y = mean(data_trim[data_trim$condition==3 
-                              & (data_trim$studyResp3==1 | data_trim$studyResp3==2 | data_trim$studyResp3==3) 
-                              ,]$named, na.rm=TRUE)
-         , col = cols[3]
-         , pch = 1
-)
-
-legend("topleft", legend = c(studyConds[1:2],studyConds[4],rep(studyConds[3],1)),
-       col=c(cols[1:2],cols[4],cols[3]),pch = c(rep(1,times=3),2),bty="n")
-
-
-```
-
-
-
-
-By Subjects
-
-Still looking at test performance as judged by third PAS response
-
-```{r, echo=FALSE}
-par(mfrow=c(2,4))
-for (sub in 1:8) {
-  # plot first point (to initilize graph)
-  plot(  x = mean(data_trim[data_trim$condition==1 
-                            & data_trim$subject==sub
-                            ,]$afc, na.rm=TRUE)
-         , y = mean(data_trim[data_trim$condition==1
-                              & data_trim$subject==sub
-                              ,]$named, na.rm=TRUE)
-         , xlim = c(0,1)
-         , ylim = c(0,1)
-         , col = cols[1]
-         , xlab = 'prop 2afc correct'
-         , ylab = 'recall rate'
-         , main = c('sub', as.character(sub))
-  )
-  
-  # plot remaining points of non-cfs conditions
-  for (cond in c(2,4)){
-    points(  x = mean(data_trim[data_trim$condition==cond
-                                & data_trim$subject==sub
-                                ,]$afc, na.rm=TRUE)
-             , y = mean(data_trim[data_trim$condition==cond
-                                  & data_trim$subject==sub
-                                  ,]$named, na.rm=TRUE)
-             , col = cols[cond]
-    )
-  }
-  
-  for (resp in unique(data_trim$studyResp)) {
-    points(  x = mean(data_trim[data_trim$condition==3 
-                                & data_trim$studyResp3==resp
-                                & data_trim$subject==sub
-                                ,]$afc, na.rm=TRUE)
-             , y = mean(data_trim[data_trim$condition==3 
-                                  & data_trim$studyResp3==resp
-                                  & data_trim$subject==sub
-                                  ,]$named, na.rm=TRUE)
-             , col = cols[3]
-             , pch = resp+1
-    )
-  }
-  
-  #   legend("topleft", legend = c(studyConds[1:2],studyConds[4],rep(studyConds[3],4)),
-  #          col=c(cols[1:2],cols[4],rep(cols[3],4)),pch = c(rep(1,times=3),2:5),bty="n")
-  
-}
-```
-
-
-```{r,echo=FALSE}
-par(mfrow=c(2,4))
-
-for (sub in 9:16) {
-  # plot first point (to initilize graph)
-  plot(  x = mean(data_trim[data_trim$condition==1 
-                            & data_trim$subject==sub
-                            ,]$afc, na.rm=TRUE)
-         , y = mean(data_trim[data_trim$condition==1
-                              & data_trim$subject==sub
-                              ,]$named, na.rm=TRUE)
-         , xlim = c(0,1)
-         , ylim = c(0,1)
-         , col = cols[1]
-         , xlab = 'prop 2afc correct'
-         , ylab = 'recall rate'
-         , main = c('sub', as.character(sub))
-  )
-  
-  # plot remaining points of non-cfs conditions
-  for (cond in c(2,4)){
-    points(  x = mean(data_trim[data_trim$condition==cond
-                                & data_trim$subject==sub
-                                ,]$afc, na.rm=TRUE)
-             , y = mean(data_trim[data_trim$condition==cond
-                                  & data_trim$subject==sub
-                                  ,]$named, na.rm=TRUE)
-             , col = cols[cond]
-    )
-  }
-  
-  for (resp in unique(data_trim$studyResp)) {
-    points(  x = mean(data_trim[data_trim$condition==3 
-                                & data_trim$studyResp3==resp
-                                & data_trim$subject==sub
-                                ,]$afc, na.rm=TRUE)
-             , y = mean(data_trim[data_trim$condition==3 
-                                  & data_trim$studyResp3==resp
-                                  & data_trim$subject==sub
-                                  ,]$named, na.rm=TRUE)
-             , col = cols[3]
-             , pch = resp+1
-    )
-  }
-  
-  #   legend("topleft", legend = c(studyConds[1:2],studyConds[4],rep(studyConds[3],4)),
-  #          col=c(cols[1:2],cols[4],rep(cols[3],4)),pch = c(rep(1,times=3),2:5),bty="n")
-  
-}
-```
-
-
-
-
-
-
-```{r}
-# rRates.cond_sem
-# afcRates.cond_sem
-
-```
-
-next, look at the state traces by subject
-
-```{r,echo=FALSE}
-# rRates_sub.cond_mean = array(0,dim=c(nConds,nSubs,nPresent))
-# rRates_sub.cond_sem = array(0,dim=c(nConds,nSubs,nPresent))
-# rRates_sub.cond_n = array(0,dim=c(nConds,nSubs,nPresent))
-# for (cond in 1:nConds) {
-#   for (sub in 1:nSubs){
-#     
-#     if (cond == 3){
-#       rRates_sub.cond_mean[cond,sub,1] <- 
-#         mean(data_trim[data_trim$condition==cond &
-#                          (data_trim$studyResp < cutoff)
-#                           & data_trim$subject==sub,]$named,
-#              na.rm=TRUE)
-#       
-#       rRates_sub.cond_n[cond,sub,1] <- 
-#         dim(data_trim[data_trim$condition==cond & 
-#                         (data_trim$studyResp < cutoff)
-#                          & data_trim$subject==sub,])[1]
-#       
-#       # second presentation
-#       rRates_sub.cond_mean[cond,sub,2] <- 
-#         mean(data_trim[data_trim$condition==cond &
-#                          (data_trim$studyResp2 < cutoff)
-#                        & data_trim$subject==sub,]$named,
-#              na.rm=TRUE)
-#       
-#       rRates_sub.cond_n[cond,sub,2] <- 
-#         dim(data_trim[data_trim$condition==cond & 
-#                         (data_trim$studyResp2 < cutoff)
-#                       & data_trim$subject==sub,])[1]
-#       
-#       
-#             # third presentation
-#       rRates_sub.cond_mean[cond,sub,3] <- 
-#         mean(data_trim[data_trim$condition==cond &
-#                          (data_trim$studyResp3 < cutoff)
-#                        & data_trim$subject==sub,]$named,
-#              na.rm=TRUE)
-#       
-#       rRates_sub.cond_n[cond,sub,3] <- 
-#         dim(data_trim[data_trim$condition==cond & 
-#                         (data_trim$studyResp3 < cutoff)
-#                       & data_trim$subject==sub,])[1]
-# 
-#       
-#     } else {
-#       rRates_sub.cond_mean[cond,sub,] <- 
-#         mean(data_trim[data_trim$condition==cond
-#                        & data_trim$subject==sub,]$named,
-#              na.rm=TRUE)
-#       
-#       rRates_sub.cond_n[cond,sub,] <- 
-#         dim(data_trim[data_trim$condition==cond
-#                       & data_trim$subject==sub,])[1]
-#     }
-#     
-#     # var = n*p*(1-p)
-#     rRates_sub.cond_sem[cond,sub,1] <-
-#       sqrt(rRates_sub.cond_n[cond,sub,1] * rRates_sub.cond_mean[cond,sub,1] * 
-#              (1- rRates_sub.cond_mean[cond,sub,1])) / 
-#       sqrt(rRates_sub.cond_n[cond,sub,1])
-#     
-#     # second present
-#     rRates_sub.cond_sem[cond,sub,2] <-
-#       sqrt(rRates_sub.cond_n[cond,sub,2] * rRates_sub.cond_mean[cond,sub,2] * 
-#              (1- rRates_sub.cond_mean[cond,sub,2])) / 
-#       sqrt(rRates_sub.cond_n[cond,sub,2])
-#     
-#         # third present
-#     rRates_sub.cond_sem[cond,sub,3] <-
-#       sqrt(rRates_sub.cond_n[cond,sub,3] * rRates_sub.cond_mean[cond,sub,3] * 
-#              (1- rRates_sub.cond_mean[cond,sub,3])) / 
-#       sqrt(rRates_sub.cond_n[cond,sub,3])
-#   }
-# }
-# 
-# # look at 2afc rates for pas < 3, collapsed across subs
-# afcRates_sub.cond_mean = array(0,dim=c(nConds,nSubs,nPresent))
-# afcRates_sub.cond_sem = array(0,dim=c(nConds,nSubs,nPresent))
-# afcRates_sub.cond_n = array(0,dim=c(nConds,nSubs,nPresent))
-# for (cond in 1:nConds) {
-#   for(sub in 1:nSubs){
-#     if (cond == 3){
-#       afcRates_sub.cond_mean[cond,sub,1] <- 
-#         mean(data_trim[data_trim$condition==cond &
-#                          (data_trim$studyResp < cutoff)
-#                        & data_trim$subject==sub,]$afc,
-#              na.rm=TRUE)
-#       
-#       afcRates_sub.cond_n[cond,sub,1] <- 
-#         dim(data_trim[data_trim$condition==cond & 
-#                         (data_trim$studyResp < cutoff )
-#                       & data_trim$subject==sub,])[1]
-#       
-#       # second present
-#       afcRates_sub.cond_mean[cond,sub,2] <- 
-#         mean(data_trim[data_trim$condition==cond &
-#                          (data_trim$studyResp2 < cutoff)
-#                        & data_trim$subject==sub,]$afc,
-#              na.rm=TRUE)
-#       
-#       afcRates_sub.cond_n[cond,sub,2] <- 
-#         dim(data_trim[data_trim$condition==cond & 
-#                         (data_trim$studyResp2 < cutoff )
-#                       & data_trim$subject==sub,])[1]
-# 
-#             # third present
-#       afcRates_sub.cond_mean[cond,sub,3] <- 
-#         mean(data_trim[data_trim$condition==cond &
-#                          (data_trim$studyResp3 < cutoff)
-#                        & data_trim$subject==sub,]$afc,
-#              na.rm=TRUE)
-#       
-#       afcRates_sub.cond_n[cond,sub,3] <- 
-#         dim(data_trim[data_trim$condition==cond & 
-#                         (data_trim$studyResp3 < cutoff )
-#                       & data_trim$subject==sub,])[1]
-# 
-#       
-#             
-#     } else {
-#       afcRates_sub.cond_mean[cond,sub,] <- 
-#         mean(data_trim[data_trim$condition==cond
-#                        & data_trim$subject==sub,]$afc,
-#              na.rm=TRUE)
-#       
-#       afcRates_sub.cond_n[cond,sub,] <- 
-#         dim(data_trim[data_trim$condition==cond
-#                       & data_trim$subject==sub,])[1]
-#     }
-#     
-#     # var = n*p*(1-p)
-#     afcRates_sub.cond_sem[cond,sub,1] <-
-#       sqrt(afcRates_sub.cond_n[cond,sub,1] * afcRates_sub.cond_mean[cond,sub,1] * 
-#              (1- rRates_sub.cond_mean[cond,sub,1])) / 
-#       sqrt(afcRates_sub.cond_n[cond,sub,1])
-#     
-#     # second present
-#     afcRates_sub.cond_sem[cond,sub,2] <-
-#       sqrt(afcRates_sub.cond_n[cond,sub,2] * afcRates_sub.cond_mean[cond,sub,2] * 
-#              (1- rRates_sub.cond_mean[cond,sub,2])) / 
-#       sqrt(afcRates_sub.cond_n[cond,sub,2])
-#     
-#         # third present
-#     afcRates_sub.cond_sem[cond,sub,3] <-
-#       sqrt(afcRates_sub.cond_n[cond,sub,3] * afcRates_sub.cond_mean[cond,sub,3] * 
-#              (1- rRates_sub.cond_mean[cond,sub,3])) / 
-#       sqrt(afcRates_sub.cond_n[cond,sub,3])
-# 
-#     
-#   }
-# }
-
-```
-
-
-**first presentation**
-
-```{r,echo=FALSE}
-# # code for plots
-# 
-# par(mfrow=c(2,4))
-# for (sub in 1:nSubs){
-#   
-#   plot(afcRates_sub.cond_mean[,sub,1],rRates_sub.cond_mean[,sub,1]
-#        , xlim = c(0,1)
-#        , ylim = c(0,1)
-#        , col = cols
-#        , xlab = 'prop 2afc correct'
-#        , ylab = 'recall rate'
-#        , main = c('sub', as.character(sub))
-#   )
-#   #legend("topleft", legend = studyConds,
-#    #      col=cols,pch = 1,bty="n")
-#   
-# }
-
-```
-
-**second presentation**
-
-```{r,echo=FALSE}
-# # code for plots
-# 
-# par(mfrow=c(2,4))
-# for (sub in 1:nSubs){
-#   
-#   plot(afcRates_sub.cond_mean[,sub,2],rRates_sub.cond_mean[,sub,2]
-#        , xlim = c(0,1)
-#        , ylim = c(0,1)
-#        , col = cols
-#        , xlab = 'prop 2afc correct'
-#        , ylab = 'recall rate'
-#        , main = c('sub', as.character(sub))
-#   )
-#   #legend("topleft", legend = studyConds,
-#    #      col=cols,pch = 1,bty="n")
-#   
-# }
-
-```
-
-**third presentation**
-
-```{r,echo=FALSE}
-# # code for plots
-# 
-# par(mfrow=c(2,4))
-# for (sub in 1:nSubs){
-#   
-#   plot(afcRates_sub.cond_mean[,sub,3],rRates_sub.cond_mean[,sub,3]
-#        , xlim = c(0,1)
-#        , ylim = c(0,1)
-#        , col = cols
-#        , xlab = 'prop 2afc correct'
-#        , ylab = 'recall rate'
-#        , main = c('sub', as.character(sub))
-#   )
-#   #legend("topleft", legend = studyConds,
-#    #      col=cols,pch = 1,bty="n")
-#   
-# }
-
-```
-
 
 ```{r,echo=FALSE,warning=FALSE}
-# pas.mean_cfs.item = array(999,c(nPresent,nSubs,nItems))
-# pas.n_cfs.item = array(999,c(nPresent,nSubs,nItems))
-# for (sub in 1:nSubs){
-#   for (item in 1:nItems) {
-#     
-#     if (data_trim[data_trim$whichItem==item
-#              & data_trim$subject==sub
-#              ,]$condition==3){
-#       
-#       # first present
-#       pas.mean_cfs.item[1,sub,item] <- 
-#         data_trim[data_trim$condition==3
-#              & data_trim$subject==sub
-#              & data_trim$whichItem==item,]$studyResp-1
-#       
-#       pas.n_cfs.item[1,sub,item] <- 
-#         dim(data_trim[data_trim$condition==3
-#                  & data_trim$subject==sub
-#                  & data_trim$whichItem==item,])[1]
-#       
-#       
-#       # second present
-#       pas.mean_cfs.item[2,sub,item] <- 
-#         data_trim[data_trim$condition==3
-#              & data_trim$subject==sub
-#              & data_trim$whichItem==item,]$studyResp2-1
-#       
-#       pas.n_cfs.item[2,sub,item] <- 
-#         dim(data_trim[data_trim$condition==3
-#                  & data_trim$subject==sub
-#                  & data_trim$whichItem==item,])[1]
-#       
-#       # third present
-#       pas.mean_cfs.item[3,sub,item] <- 
-#         data_trim[data_trim$condition==3
-#              & data_trim$subject==sub
-#              & data_trim$whichItem==item,]$studyResp3-1
-#       
-#       pas.n_cfs.item[3,sub,item] <- 
-#         dim(data_trim[data_trim$condition==3
-#                  & data_trim$subject==sub
-#                  & data_trim$whichItem==item,])[1]
-#     }
-#   }
-#   
-# }
+# state trace plots
+
+
+dfwc3_afc <- summarySEwithin(data, measurevar="afc"                       , withinvars=c("condition","studyResp3"),
+                             idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+toPlot3 <- cbind(named=dfwc3$named,ci_named=dfwc3$ci
+                 ,dfwc3_afc,count=(dfwc3$N+dfwc3_afc$N)/2)
+
+
+dfwc1_afc <- summarySEwithin(data, measurevar="afc"                       , withinvars=c("condition","studyResp"),
+                             idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+toPlot1 <- cbind(named=dfwc1$named,ci_named=dfwc1$ci
+                 ,dfwc1_afc,count=(dfwc1$N+dfwc1_afc$N)/2)
+
 ```
 
 
-```{r,echo=FALSE}
-# pas_sub_item_plot = array(999,c(nPresent,48*nSubs))
-# item = 0
-# for (sub in 1:nSubs){
-#   for (trl in 1:nItems){
-#     
-#     if((pas.mean_cfs.item[,sub,trl])!=999){
-#       item = item+1
-#       pas_sub_item_plot[,item] <- pas.mean_cfs.item[,sub,trl]
-#     }
-#   }
-# }
+```{r,scatterPlots_third_noSize,echo=FALSE,warning=FALSE}
+
+ggplot(toPlot3, aes(x=afc, y=named, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
+  ylim(0,1) +
+  xlim(0,1) +
+  geom_point(position=pd, size=1) +
+  facet_grid(. ~ studyResp3 ) +
+  facet_wrap(~ studyResp3, ncol=3) +
+  ggtitle("state trace, facets indicate PAS response on third presentation (1e+05 => foil)") +
+  theme(aspect.ratio = 1) 
+
 
 
 ```
 
 
-```{r,echo=FALSE,warning=FALSE}
-# par(mfrow=c(1,1))
-# df <- data.frame(first = pas_sub_item_plot[1,]
-#                  ,second = pas_sub_item_plot[2,]
-#                  ,sub=rep(1:6,each=48))
-# 
-# numPlot<-ggplot(data = df,aes(x = first,y = second)) + stat_sum(aes(size = ..n..))
-# numPlot + ggtitle("num(PAS 2 & PAS 1) of items under cfs, all subs")
-# 
+
+
+
+```{r,scatterPlots_third,echo=FALSE,warning=FALSE}
+pd <- position_dodge(0.001)
+
+ggplot(toPlot3, aes(x=afc, y=named, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
+  ylim(0,1) +
+  xlim(0,1) +
+  geom_point(position=pd, aes(size=count)) +
+  scale_size_continuous(breaks=c(10,100,200,400,600)) +
+  facet_grid(. ~ studyResp3 ) +
+  facet_wrap(~ studyResp3, ncol=3) +
+  ggtitle("state trace, facets indicate PAS response on third presentation (1e+05 => foil)") +
+  theme(aspect.ratio = 1) 
+
+
 
 ```
 
-```{r, echo=FALSE,warning=FALSE}
-pasCondi.mean.item = array(999,c(nSubs,nPAS,nItems))
-pasCondi.n.item = array(999,c(nSubs,nPAS,nItems))
-for (sub in 1:nSubs){
-  for (pas in 1:nConds){
-    for (item in 1:nItems) {
-      
-      if (length(data_trim[data_trim$whichItem==item
-                           & data_trim$subject==sub
-                           & data_trim$condition==3
-                           ,]$studyResp==pas)!=0 
-          && data_trim[data_trim$whichItem==item
-                       & data_trim$subject==sub
-                       & data_trim$condition==3
-                       ,]$studyResp==pas) {
-        
-        
-        # given first resp of pas, what was third?
-        pasCondi.mean.item[sub,pas,item] <- 
-          data_trim[data_trim$studyResp==pas
-                    & data_trim$condition==3
-                    & data_trim$subject==sub
-                    & data_trim$whichItem==item,]$studyResp3-1
-        
-        pasCondi.n.item[sub,pas,item] <- 
-          dim(data_trim[data_trim$studyResp==pas
-                        & data_trim$condition==3
-                        & data_trim$subject==sub
-                        & data_trim$whichItem==item,])[1]
-        
-      }
-    }
-  }
-}
 
-pas_condi_plot = array(999,c(48*nSubs,nPAS))
-item = 0
-for (sub in 1:nSubs){
-  for (pas in 1:nPAS){
-    for (trl in 1:nItems){
-      
-      if(!is.na(pasCondi.mean.item[sub,pas,trl])){
-        if((pasCondi.mean.item[sub,pas,trl])!=999){
-          item = item+1
-          pas_condi_plot[item,pas] <- pasCondi.mean.item[sub,pas,trl]
-        }
-      }
-    }
-  }
-}
+In the above graph, size of dot indicates amount of data going in to point
 
-# final form?
-tally <- array(0,c(nPAS,nPAS))
-sum(pas_condi_plot[,1]==3)
+```{r,scatterPlots_first,echo=FALSE,warning=FALSE}
+pd <- position_dodge(0.001)
 
-for (pas in 1:nPAS){
-  for(sec in 1:nPAS){
-    tally[pas,sec] <- sum(pas_condi_plot[,pas]==sec-1)
-  }
-}
+ggplot(toPlot1, aes(x=afc, y=named, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
+  ylim(0,1) +
+  xlim(0,1) +
+  geom_point(position=pd, aes(size=count))  +
+  scale_size_continuous(breaks=c(10,100,200,400,600)) +
+  facet_grid(. ~ studyResp ) +
+  facet_wrap(~ studyResp, ncol=3) +
+  ggtitle("state trace, facets indicate PAS response on first presentation (1e+05 => foil)") +
+  theme(aspect.ratio = 1)
 
-
-barplot(t(tally)
-        , beside = TRUE
-        , main = "num(PAS_3 | PAS_1)"
-        , legend.text = c('to 0', 'to 1', 'to 2', 'to 3')
-        , args.legend = list(x="topleft")
-        , names.arg = c('0', '1', '2', '3')
-)
-
-tally_prop <- tally/rowSums(tally)
 
 ```
 
-In the following graph, note that the highest of each group of bars shifts one bar to the right for each gropu (0-3). This says that, for a PAS of 3 on the first presentation, the most likely PAS on the second is 3. Similarly, for a PAS of 2 on the first presentation, the most likely is a 2 on the second (followed by a 1). For 1 on the first, mostly likely is a second 1 (followed by 2). For 0, the most likely is split between 0 and 1.
-```{r,echo=FALSE,warning=FALSE}
-barplot(t(tally_prop)
-        , beside = TRUE
-        , main = "p(PAS_3 | PAS_1)"
-        , ylim = c(0,1)
-        , legend.text = c('to 0', 'to 1', 'to 2', 'to 3')
-        , args.legend = list(x="topleft")
-        , names.arg = c('0', '1', '2', '3')
-)
+
+now, look at individual subjects (normalized scores)
+
+```{r,subData,echo=FALSE,warning=FALSE}
+afc_sub <- summarySEwithin(data, measurevar="afc",
+                           withinvars=c("condition","subject"),
+                           idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+name_sub <- summarySEwithin(data, measurevar="named",
+                            withinvars=c("condition","subject"),
+                            idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+
+toPlot_sub <- cbind(named=name_sub$named
+                    ,named_norm=name_sub$named_norm
+                    ,ci_named=name_sub$ci
+                    ,afc_sub
+                    ,count=(afc_sub$N+name_sub$N)/2)
+
+
+
+```
+
+
+```{r,st_sub_graph1,echo=FALSE,warning=FALSE}
+pd <- position_dodge(0.001)
+
+ggplot(toPlot_sub, aes(x=afc_norm, y=named_norm, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named_norm-ci_named, ymax=named_norm+ci_named), colour="black", width=.05, position=pd) +
+  geom_errorbarh(aes(xmin=afc_norm-ci, xmax=afc_norm+ci), colour="black", height = .05, position=pd) +
+  ylim(0,1) +
+  xlim(0,1) +
+  geom_point(position=pd, size=1)  +  #aes(size=count)
+  #  scale_size_continuous(breaks=c(10,100,200,400,600)) +
+  facet_grid(. ~ subject ) +
+  facet_wrap(~ subject, ncol=8) +
+  ggtitle("state trace, by subject, normalized scores") +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
+  theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+
+```{r,st_sub_graph2,echo=FALSE,warning=FALSE}
+pd <- position_dodge(0.001)
+
+ggplot(toPlot_sub, aes(x=afc, y=named, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
+  ylim(0,1) +
+  xlim(0,1) +
+  geom_point(position=pd, size=1)  +  #aes(size=count)
+  #  scale_size_continuous(breaks=c(10,100,200,400,600)) +
+  facet_grid(. ~ subject ) +
+  facet_wrap(~ subject, ncol=8) +
+  ggtitle("state trace, by subject, raw scores") +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
+  theme(axis.ticks = element_blank(), axis.text.y = element_blank())
 
 
 ```

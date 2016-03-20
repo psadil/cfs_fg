@@ -16,7 +16,7 @@ subIndex = 0;
 
 %subs 12,18,19, left for one reason or another
 % subs 5 / 8, not sure
-missingData = [5,8,12,18,19,];
+missingData = [5,8,12,18,19,32];
 
 
 for subNum = firstSub:lastSub

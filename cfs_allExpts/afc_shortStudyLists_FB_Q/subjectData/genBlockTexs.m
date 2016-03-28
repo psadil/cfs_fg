@@ -1,4 +1,4 @@
-function [ texs_study, texs_test, studyWords ] = genBlockTexs( stimTab_full, list, window )
+function [ texs_study, texs_test, studyWords, testWords ] = genBlockTexs( stimTab_full, list, window )
 %genBlockTexs generates textures for 1 study/text cycle (block)
 
 %% load
@@ -45,6 +45,7 @@ load('objectNames_2afc.mat');
 % this loads variable 'stimNames', a 221x3 cell
 
 studyWords = stimNames(stimTab_block.studyOrder,1);
+testWords = stimNames(stimTab_block.testOrder,1);
 
 
 %% test textures
@@ -57,23 +58,19 @@ texs_test = struct('name', num2cell(stimTab_block.testOrder));
 itemPair_test_cell = num2cell(stimTab_block.testPair);
 [texs_test(1:size(texs_test,1)).pair] = deal(itemPair_test_cell{:});
 
-% create field with trial type
-itemCondition_test_cell = num2cell(stimTab_block.itemCond_test);
-[texs_test(1:size(texs_test,1)).tType] = deal(itemCondition_test_cell{:});
-
 % grab all of each apertures
-[test_ap1, ~, alpha1] = arrayfun(@(x) imread( [p.root,...
+[test_ap1, ~, alpha1] = arrayfun(@(x) imread( [pwd,...
     '/stims/expt/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap1'], 'png'), ...
     texs_test, 'UniformOutput', 0);
 test_ap1_wAlpha = cellfun(@(x, n) cat(3,x,x,x,n), test_ap1, alpha1, 'UniformOutput', 0);
 
 
-[test_ap2, ~, alpha2] = arrayfun(@(x) imread( [p.root,...
+[test_ap2, ~, alpha2] = arrayfun(@(x) imread( [pwd,...
     '/stims/expt/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap2'], 'png'), ...
     texs_test, 'UniformOutput', 0);
 testOne = cellfun(@(x, n) cat(3,x,x,x,n), test_ap2, alpha2, 'UniformOutput', 0);
 
-[test_ap3, ~, alpha3] = arrayfun(@(x) imread( [p.root,...
+[test_ap3, ~, alpha3] = arrayfun(@(x) imread( [pwd,...
     '/stims/expt/apertures/object', num2str(x.pair), '_paired', num2str(x.name), '_ap3'], 'png'), ...
     texs_test, 'UniformOutput', 0);
 testTwo = cellfun(@(x, n) cat(3,x,x,x,n), test_ap3, alpha3, 'UniformOutput', 0);

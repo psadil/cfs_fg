@@ -7,7 +7,6 @@ function [ ] = waitSomeSecs( waitingTime, p )
 
 now = GetSecs;
 while GetSecs <= now + waitingTime
-    Screen('DrawTexture', p.window, p.texture_ITI);
     Screen('Flip', p.window);
     [pressed, resp] = KbQueueCheck;
     if pressed

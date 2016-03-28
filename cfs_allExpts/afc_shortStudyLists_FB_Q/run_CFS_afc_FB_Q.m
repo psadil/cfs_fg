@@ -1,32 +1,66 @@
-function [] = run_CFS_afc_FB_Q(~)
-% run_CFS_afc_FB_Q -- cfs, short study lists, 2afc, feedback, with
-% questions to help participants study
+function [] = run_CFS_afc_FB_Q(varargin)
+
+Screen('Preference', 'ConserveVRAM', 4096);
 
 
+ip = inputParser;
+addParameter(ip,'subNum', 0, @isnumeric);
+addParameter(ip,'stereoMode', 1, @isnumeric);
+addParameter(ip,'debugLevel',0, @isnumeric);
+addParameter(ip,'studyPhase',1, @isnumeric);
+addParameter(ip,'practice',1, @isnumeric);
+parse(ip,varargin{:});
+input = ip.Results;
+% defaults = ip.UsingDefaults;
+
+
+if input.debugLevel >= 1
+    inputHandler = makeInputHandlerFcn('Robot');
+elseif input.debugLevel == 0
+    inputHandler = makeInputHandlerFcn('KbQueue');
+end
 
 %%
-if ~exist([pwd, '\Subject Data\'], 'dir')
-    mkdir([pwd, '\Subject Data\']);
+if ~exist([pwd, '\subjectData\'], 'dir')
+    mkdir([pwd, '\subjectData\']);
 end
+
 
 
 % set up experiment
-prompt = {'Subject Number', 'Session Number', 'Include Practice?', 'Include Study Phase?', 'stereoMode','Right Eye Dominant?'};
-
-defAns = {'SubNum','1', '1', '1', '1','1'}; %fill in some stock answers to the gui input boxes
-box = inputdlg(prompt,'Enter Subject Information...', 1, defAns);
-if length(box)==length(defAns)      %simple check for enough input, otherwise bail out
-    p.subNum=str2double(box{1});
-    p.sessNum=str2double(box{2});
-    p.practice=str2double(box{3});
-    p.studyPhase=str2double(box{4});
-    p.stereoMode=str2double(box{5});
-    p.rightEyeDom=str2double(box{6});
-    p.rndSeed = round(sum(100*clock));
-    rng(p.rndSeed);  %actually seed the random number generator
-else    %if cancel button or not enough input, then just bail
-    return
+if input.debugLevel > 0
+    prompt = {'Subject Number', 'Include Practice?', 'Include Study Phase?', 'stereoMode','Right Eye Dominant?'};
+    
+    defAns = {'SubNum','1','1','1','1'}; %fill in some stock answers to the gui input boxes
+    box = inputdlg(prompt,'Enter Subject Information...', 1, defAns);
+    if length(box)==length(defAns)      %simple check for enough input, otherwise bail out
+        p.subNum=str2double(box{1});
+        p.practice=str2double(box{2});
+        p.studyPhase=str2double(box{3});
+        p.stereoMode=str2double(box{4});
+        p.rightEyeDom=str2double(box{5});
+    else    %if cancel button or not enough input, then just bail
+        return
+    end
+    
+else
+    prompt = {'Subject Number', 'Right Eye Dominant?'};
+    
+    defAns = {'SubNum','1'}; %fill in some stock answers to the gui input boxes
+    box = inputdlg(prompt,'Enter Subject Information...', 1, defAns);
+    if length(box)==length(defAns)      %simple check for enough input, otherwise bail out
+        p.subNum=str2double(box{1});
+        p.rightEyeDom=str2double(box{2});
+    else    %if cancel button or not enough input, then just bail
+        return
+    end
+    p.practice=input.practice;
+    p.studyPhase=input.studyPhase;
+    p.stereoMode=input.stereoMode;
 end
+p.rndSeed = round(sum(100*clock));
+rng(p.rndSeed);
+
 %% set up necessary directories
 
 p.root = pwd;
@@ -36,7 +70,7 @@ end
 
 %% test for data file
 
-fName = [pwd, '\Subject Data\', 'Subject', num2str(p.subNum), 'CFS_afc_wFB_ques', num2str(p.sessNum), '.mat'];
+fName = [pwd, '\subjectData\', 'Subject', num2str(p.subNum), 'CFS_afc_FB_Q.mat'];
 
 if exist(fName,'file')
     query = questdlg('File name already exists. Do you want to overwrite?', 'title', 'No' );
@@ -52,7 +86,7 @@ if exist(fName,'file')
     end
 end
 
-
+% try
 %% Demographics
 
 Demographics(p.subNum)
@@ -64,106 +98,8 @@ p = loadStimTable(p);
 
 %% initialize CFS needs (squares and such)
 
-p = initializeScreen(p);
+p = initializeScreen(p, input);
 
-
-%%
-
-ListenChar(-1);
-p.RefreshRate = 120;
-
-% viewing distance and screen width ---------------------
-p.screenWidthCM = 45;
-p.vDistCM = 90;
-
-%% Response keys
-
-% for QUEUE routines
-p.keys_Space = zeros(1,256);
-p.keys_Space(KbName('space'))=1;
-
-p.keys_Enter = zeros(1,256);
-p.keys_Enter(KbName('return'))=1;
-
-p.keys_Backspace = zeros(1,256);
-p.keys_Backspace(KbName('backspace'))=1;
-
-p.keys_beginExp = zeros(1,256);
-p.keys_beginExp(KbName('p')) = 1;
-
-p.keys_Escape = zeros(1,256);
-if ismac
-    p.keys_Escape(41)=1;
-else
-    p.keys_Escape(27)=1;
-end
-
-p.keys_Navigation=p.keys_Escape+p.keys_Enter+p.keys_Space+p.keys_Backspace;
-
-p.keys_Response = zeros(1,256);     % making sure subjects can only respond with certain keys, those keys are...
-p.keys_Response(KbName('a'):KbName('z'))=1;     % all of the lower case letters
-
-p.keys_simpleResp = zeros(1,256);
-p.keys_simpleResp([KbName('0'):KbName('3'), KbName('0)'):KbName('3#'),KbName('a')])=1;
-
-% other
-p.space = KbName('space');
-p.return = KbName('return');
-if ismac
-    p.escape = 41;
-else
-    p.escape = 27;
-end
-
-%%
-
-% this command makes the number keys unusable (but keeps numpad functional)
-PsychDefaultSetup(2);
-
-% set luminance range for experiment (less than 0-1 so that we don't induce epilepsy!)
-p.lum_range = [0.2 0.8];
-% Note the new argument to Openp.window with value 2,
-
-% p.windowColor = repmat(p.lum_range(1)*255,[1 3]);
-% [p.window, p.windowRect] = Screen(s,'OpenWindow',p.windowColor,[],[],2);
-HideCursor;
-
-% compute and store the center of the screen: p.windowRect contains the upper
-% left coordinates (x,y) and the lower right coordinates (x,y)
-p.xCenter = (p.windowRect(3) - p.windowRect(1))/2;
-p.yCenter = (p.windowRect(4) - p.windowRect(2))/2;
-p.center = [(p.windowRect(3) - p.windowRect(1))/2, (p.windowRect(4) - p.windowRect(2))/2];
-
-% test the refresh properties of the display
-p.fps=Screen('FrameRate',p.window);          % frames per second
-p.ifi=Screen('GetFlipInterval', p.window);   % inter-frame-interval
-p.waitframes = 1;
-p.waitduration = p.waitframes * p.ifi;
-if p.fps==0         % if fps does not register, then set the fps based on ifi
-    p.fps=1/p.ifi;
-end
-
-% check that the actual refresh rate is what we expect it to be.
-if abs(p.fps-p.RefreshRate)>5
-    sca;
-    disp('Set the refresh rate to the requested rate')
-    ListenChar(0);
-    return;
-end
-
-% font parameters --------------------------------------
-p.fontSize = 24;
-p.textColor = [255 255 255]; %p.LUT(end,:);  % white
-p.wordStimFont = 48;
-
-% set up the font
-Screen('TextFont',p.window, 'Arial');
-Screen('TextSize',p.window, p.fontSize);
-Screen('TextStyle', p.window, 0);
-Screen('TextColor', p.window, p.textColor);
-
-p.wrapat=80;
-p.indent=400;
 
 %% text required for exp
 p.text_space = '[Press Space Bar to continue]';
@@ -173,34 +109,63 @@ p.text_enter = '[Press Enter to continue]';
 p.tCenterSpace = [p.xCenter-RectWidth(Screen('TextBounds', p.window, p.text_space))/2  p.windowRect(4)*.9+40];
 p.tCenterEnter = [p.xCenter-RectWidth(Screen('TextBounds', p.window, p.text_enter))/2  p.windowRect(4)*.9+40];
 
-% p.ITI_text = repmat(p.lum_range(1)*255,[p.windowRect(4),p.windowRect(3)]); %size of screen
-p.texture_ITI = Screen('MakeTexture', p.window, repmat(p.lum_range(1)*255,[p.windowRect(4),p.windowRect(3)]));
 
+%%  some other parameter
 
-%%  some other parameters we need for break
-p.break = 5; %secs of forced break
-
+% about 1/4 foils are shown as such, these serve as catch trials for CFS
+% condition
+p.catchRatio = .25;
 
 %% begin practice phase
-if p.practice    
+if p.practice
     
     %begin practice phase
-    experimentalPhase(p, p.practice);
+    experimentalPhase(p, p.practice, input, inputHandler);
 end
 
 
 startExp = GetSecs;
 %% run experimental phase
 
-p = experimentalPhase(p, 0);
+p = experimentalPhase(p, 0, input, inputHandler);
 
-
-%% save data
+% save data
 p.dur.exp = GetSecs - startExp;
+save(fName, 'p', 'input');
 
-save(fName, 'p');
+
+% Shutdown realtime scheduling:
+Priority(0);
+
+% reset color to regular range
+Screen('ColorRange', p.window, 255);
 
 ListenChar(0);
-sca
+sca;
+
+
+
+
+% catch
+%     % This "catch" section executes in case of an error in the "try" section
+%     % above. Importantly, it closes the onscreen window if its open and
+%     % shuts down realtime-scheduling of Matlab:
+%
+%     % reset color to regular range
+%     Screen('ColorRange', p.window, 255);
+%
+%     % accept keyboard input
+%     ListenChar(0);
+%
+%     % Disable realtime-priority in case of errors.
+%     Priority(0);
+%
+%     % close screens
+%     sca;
+%
+%     psychrethrow(psychlasterror);
+%
+%
+% end
 
 end

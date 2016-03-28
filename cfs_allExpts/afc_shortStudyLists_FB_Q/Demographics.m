@@ -101,7 +101,7 @@ else
 end
 
 % Record output to a text file
-fid = fopen([pwd, '\Subject Data\Demographics_sub', num2str(subNum) ,'.txt'], 'wt' );
+fid = fopen([pwd, '\subjectData\Demographics_sub', num2str(subNum) ,'.txt'], 'wt' );
 for i = 1:3
     fprintf( fid, sprintf( [ output{i} '\n' ] ) );
 end

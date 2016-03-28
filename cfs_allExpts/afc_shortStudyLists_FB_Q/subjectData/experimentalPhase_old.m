@@ -103,25 +103,24 @@ if practice
     KbQueueStart;
     KbQueueReserve(1, 2, 0)
     
-    
-    
-    % one eye
-    Screen('SelectStereoDrawBuffer',p.window,(0));
-    DrawFormattedText(p.window,text_beginPrac1_1,'center', tCenter_BeginPrac1_1(2),[],p.wrapat,[],[],1.5);
-    DrawFormattedText(p.window,text_beginPrac2_1,'center', tCenter_BeginPrac2_1(2),[],p.wrapat,[],[],1.5);
-    Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
-    
-    % other eye
-    Screen('SelectStereoDrawBuffer',p.window,(1));
-    DrawFormattedText(p.window,text_beginPrac1_1,'center', tCenter_BeginPrac1_1(2),[],p.wrapat,[],[],1.5);
-    DrawFormattedText(p.window,text_beginPrac2_1,'center', tCenter_BeginPrac2_1(2),[],p.wrapat,[],[],1.5);
-    Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
-    
-    % flip
-    Screen('DrawingFinished', p.window);
-    Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
-    
     while 1
+        
+        % one eye
+        Screen('SelectStereoDrawBuffer',p.window,(0));
+        DrawFormattedText(p.window,text_beginPrac1_1,'center', tCenter_BeginPrac1_1(2),[],p.wrapat,[],[],1.5);
+        DrawFormattedText(p.window,text_beginPrac2_1,'center', tCenter_BeginPrac2_1(2),[],p.wrapat,[],[],1.5);
+        Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
+        
+        % other eye
+        Screen('SelectStereoDrawBuffer',p.window,(1));
+        DrawFormattedText(p.window,text_beginPrac1_1,'center', tCenter_BeginPrac1_1(2),[],p.wrapat,[],[],1.5);
+        DrawFormattedText(p.window,text_beginPrac2_1,'center', tCenter_BeginPrac2_1(2),[],p.wrapat,[],[],1.5);
+        Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
+        
+        % flip
+        Screen('DrawingFinished', p.window);
+        vbl=Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
+        
         listen(input.debugLevel, 'space');
         
         % receive input
@@ -161,28 +160,32 @@ for list = 1:nStudyLists
         studyInstructions(p, input);
     end
     
+    if practice
+        [ texs_study, texs_test, studyWords, testWords ] = genBlockTexs(p.stimTab_prac, list, p.window);
+    else
+        [ texs_study, texs_test, studyWords, testWords ] = genBlockTexs(p.stimTab, list, p.window);
+    end
     
     %----------------------------------------------------------------------
     % brief 'get prepared for a study list'
     %----------------------------------------------------------------------
     vbl = iti(p.window,p.iti);
-    
-    
-    % one eye
-    Screen('SelectStereoDrawBuffer',p.window,(0));
-    DrawFormattedText(p.window,text_start_study,'center', tCenterStartStudy(2) - 100,[],p.wrapat,[],[],1.5);
-    DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2),[],p.wrapat,[],[],1.5);
-    
-    % other eye
-    Screen('SelectStereoDrawBuffer',p.window,(1));
-    DrawFormattedText(p.window,text_start_study,'center', tCenterStartStudy(2)- 100,[],p.wrapat,[],[],1.5);
-    DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2),[],p.wrapat,[],[],1.5);
-    
-    % present to screen
-    Screen('DrawingFinished', p.window);
-    Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
-    
     while 1
+        
+        % one eye
+        Screen('SelectStereoDrawBuffer',p.window,(0));
+        DrawFormattedText(p.window,text_start_study,'center', tCenterStartStudy(2) - 100,[],p.wrapat,[],[],1.5);
+        DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2),[],p.wrapat,[],[],1.5);
+        
+        % other eye
+        Screen('SelectStereoDrawBuffer',p.window,(1));
+        DrawFormattedText(p.window,text_start_study,'center', tCenterStartStudy(2)- 100,[],p.wrapat,[],[],1.5);
+        DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2),[],p.wrapat,[],[],1.5);
+        
+        % present to screen
+        Screen('DrawingFinished', p.window);
+        vbl=Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
+        
         listen(input.debugLevel, 'space');
         
         % receive input
@@ -194,15 +197,6 @@ for list = 1:nStudyLists
             end
         end
     end
-    %----------------------------------------------------------------------
-    % generate study textures
-    %----------------------------------------------------------------------
-    if practice
-        [ texs, words ] = genBlockTexs(p.stimTab_prac, list, p.window,1);
-    else
-        [ texs, words ] = genBlockTexs(p.stimTab, list, p.window,1);
-    end
-    
     
     
     %-----------------------------------------------
@@ -211,11 +205,9 @@ for list = 1:nStudyLists
     
     if p.studyPhase
         
-        [p] = studyPhase(p, texs, list, words, inputHandler, input);
+        [p] = studyPhase(p, texs_study, list, studyWords, inputHandler, input);
         
     end
-    
-    
     
     %----------------------------------------------------------------------
     % brief break
@@ -224,23 +216,22 @@ for list = 1:nStudyLists
     KbQueueCreate(0,p.keys_Navigation);
     now = GetSecs;
     KbQueueStart;
-    
-    
-    % one eye
-    Screen('SelectStereoDrawBuffer',p.window,(0));
-    Screen('DrawText', p.window, text_endStudy1, tCenterEndStudy1(1), tCenterEndStudy1(2), p.textColor);
-    Screen('DrawText', p.window, text_endStudy2, tCenterEndStudy2(1), tCenterEndStudy2(2), p.textColor);
-    
-    % other eye
-    Screen('SelectStereoDrawBuffer',p.window,(1));
-    Screen('DrawText', p.window, text_endStudy1, tCenterEndStudy1(1), tCenterEndStudy1(2), p.textColor);
-    Screen('DrawText', p.window, text_endStudy2, tCenterEndStudy2(1), tCenterEndStudy2(2), p.textColor);
-    
-    % present to screen
-    Screen('DrawingFinished', p.window);
-    Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
-    
     while GetSecs <= now + p.break
+        
+        % one eye
+        Screen('SelectStereoDrawBuffer',p.window,(0));
+        Screen('DrawText', p.window, text_endStudy1, tCenterEndStudy1(1), tCenterEndStudy1(2), p.textColor);
+        Screen('DrawText', p.window, text_endStudy2, tCenterEndStudy2(1), tCenterEndStudy2(2), p.textColor);
+        
+        % other eye
+        Screen('SelectStereoDrawBuffer',p.window,(1));
+        Screen('DrawText', p.window, text_endStudy1, tCenterEndStudy1(1), tCenterEndStudy1(2), p.textColor);
+        Screen('DrawText', p.window, text_endStudy2, tCenterEndStudy2(1), tCenterEndStudy2(2), p.textColor);
+        
+        % present to screen
+        Screen('DrawingFinished', p.window);
+        vbl=Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
+        
         listen(input.debugLevel, 'space');
         
         % wait for input
@@ -248,15 +239,6 @@ for list = 1:nStudyLists
         if pressed
             if resp(p.escape); ListenChar(0); sca; return; end
         end
-    end
-    
-    %----------------------------------------------------------------------
-    % generate test textures
-    %----------------------------------------------------------------------
-    if practice
-        [ texs, words ] = genBlockTexs(p.stimTab_prac, list, p.window,0);
-    else
-        [ texs, words ] = genBlockTexs(p.stimTab, list, p.window,0);
     end
     
     %----------------------------------------------------------------------
@@ -272,21 +254,20 @@ for list = 1:nStudyLists
     % brief 'get prepared for testing'
     %----------------------------------------------------------------------
     vbl = iti(p.window,p.iti);
-    
-    
-    % one eye
-    Screen('SelectStereoDrawBuffer',p.window,(0));
-    Screen('DrawText', p.window, text_start_test, tCenterStartTest(1), tCenterStartTest(2), p.textColor);
-    
-    % other eye
-    Screen('SelectStereoDrawBuffer',p.window,(1));
-    Screen('DrawText', p.window, text_start_test, tCenterStartTest(1), tCenterStartTest(2), p.textColor);
-    
-    % present to screen
-    Screen('DrawingFinished', p.window);
-    Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
-    
     while 1
+        
+        % one eye
+        Screen('SelectStereoDrawBuffer',p.window,(0));
+        Screen('DrawText', p.window, text_start_test, tCenterStartTest(1), tCenterStartTest(2), p.textColor);
+        
+        % other eye
+        Screen('SelectStereoDrawBuffer',p.window,(1));
+        Screen('DrawText', p.window, text_start_test, tCenterStartTest(1), tCenterStartTest(2), p.textColor);
+        
+        % present to screen
+        Screen('DrawingFinished', p.window);
+        vbl=Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
+        
         listen(input.debugLevel, 'space');
         
         % input
@@ -301,7 +282,7 @@ for list = 1:nStudyLists
     end
     
     
-    [p] = testPhase(p, texs, list, practice, words, input, inputHandler);
+    [p] = testPhase(p, texs_test, list, practice, testWords, input, inputHandler);
     
     
 end
@@ -315,21 +296,20 @@ KbQueueStart;
 
 
 now = GetSecs;
-
-
-% one eye
-Screen('SelectStereoDrawBuffer',p.window,(0));
-DrawFormattedText(p.window,text_end,'center', tCenterEnd(2),[],p.wrapat,[],[],1.5);
-
-% other eye
-Screen('SelectStereoDrawBuffer',p.window,(1));
-DrawFormattedText(p.window,text_end,'center', tCenterEnd(2),[],p.wrapat,[],[],1.5);
-
-% present to screen
-Screen('DrawingFinished', p.window);
-Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
-
 while (GetSecs <= now + p.break) || practice
+    
+    % one eye
+    Screen('SelectStereoDrawBuffer',p.window,(0));
+    DrawFormattedText(p.window,text_end,'center', tCenterEnd(2),[],p.wrapat,[],[],1.5);
+    
+    % other eye
+    Screen('SelectStereoDrawBuffer',p.window,(1));
+    DrawFormattedText(p.window,text_end,'center', tCenterEnd(2),[],p.wrapat,[],[],1.5);
+    
+    % present to screen
+    Screen('DrawingFinished', p.window);
+    vbl=Screen('Flip', p.window,vbl + (p.hzRate-.5)*p.ifi);
+    
     listen(input.debugLevel, 'space');
     
     % input
@@ -343,13 +323,17 @@ while (GetSecs <= now + p.break) || practice
     end
 end
 
+% if practice
+%    Screen('Close',[texs_study.tex]);
+%    % NOTE: even for practice trials, test textures were already closed
+% end
 
 
 end
 
 
 
-function [ texs, words ] = genBlockTexs( stimTab_full, list,window,study )
+function [ texs_study, texs_test, studyWords, testWords ] = genBlockTexs( stimTab_full, list, window,study )
 %genBlockTexs generates textures for 1 study/text cycle (block)
 
 %% load
@@ -373,50 +357,59 @@ if study
     %% study textures
     
     % create study structure
-    texs = struct('name', num2cell(stimTab_block.studyOrder));
+    texs_study = struct('name', num2cell(stimTab_block.studyOrder));
     
     % create field with trial type
     itemCondition_study_cell = num2cell(stimTab_block.itemCond_study);
-    [texs(1:size(texs,1)).tType] = deal(itemCondition_study_cell{:});
+    [texs_study(1:size(texs_study,1)).tType] = deal(itemCondition_study_cell{:});
     
     % read data from all items, making composite image matrix (RGB + alpha columns)
-    [study_images, ~, transperancy_study] = arrayfun(@(x) imread( [pwd, '/stims/expt/whole/object', num2str(x.name), '_noBkgrd'], 'png'), texs, 'UniformOutput', 0);
+    [study_images, ~, transperancy_study] = arrayfun(@(x) imread( [pwd, '/stims/expt/whole/object', num2str(x.name), '_noBkgrd'], 'png'), texs_study, 'UniformOutput', 0);
     study_images_wAlpha = cellfun(@(x, n) cat(3,x(:,:),n(:,:)), study_images, transperancy_study, 'UniformOutput', 0);
     
     % make textures of images
     cellStudy = num2cell(cellfun(@(x) Screen('MakeTexture',window,x), study_images_wAlpha));
     
     % name textures of each stim
-    [texs(1:size(texs,1)).tex] = deal(cellStudy{:});
+    [texs_study(1:size(texs_study,1)).tex] = deal(cellStudy{:});
     
+    %--------------------------------------------------------------------------
+    % Next, make study word textures
+    %--------------------------------------------------------------------------
+    load('objectNames_2afc.mat');
+    % this loads variable 'stimNames', a 221x3 cell
     
+    studyWords = stimNames(stimTab_block.studyOrder,1);
     
 else
-    % test textures
+    testWords = stimNames(stimTab_block.testOrder,1);
+    
+    
+    %% test textures
     
     % grab the names of all test items
     % create study structure
-    texs = struct('name', num2cell(stimTab_block.testOrder));
+    texs_test = struct('name', num2cell(stimTab_block.testOrder));
     
     % create field with pairing
     itemPair_test_cell = num2cell(stimTab_block.testPair);
-    [texs(1:size(texs,1)).pair] = deal(itemPair_test_cell{:});
+    [texs_test(1:size(texs_test,1)).pair] = deal(itemPair_test_cell{:});
     
     % grab all of each apertures
     [test_ap1, ~, alpha1] = arrayfun(@(x) imread( [pwd,...
         '/stims/expt/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap1'], 'png'), ...
-        texs, 'UniformOutput', 0);
+        texs_test, 'UniformOutput', 0);
     test_ap1_wAlpha = cellfun(@(x, n) cat(3,x,x,x,n), test_ap1, alpha1, 'UniformOutput', 0);
     
     
     [test_ap2, ~, alpha2] = arrayfun(@(x) imread( [pwd,...
         '/stims/expt/apertures/object', num2str(x.name), '_paired', num2str(x.pair), '_ap2'], 'png'), ...
-        texs, 'UniformOutput', 0);
+        texs_test, 'UniformOutput', 0);
     testOne = cellfun(@(x, n) cat(3,x,x,x,n), test_ap2, alpha2, 'UniformOutput', 0);
     
     [test_ap3, ~, alpha3] = arrayfun(@(x) imread( [pwd,...
         '/stims/expt/apertures/object', num2str(x.pair), '_paired', num2str(x.name), '_ap3'], 'png'), ...
-        texs, 'UniformOutput', 0);
+        texs_test, 'UniformOutput', 0);
     testTwo = cellfun(@(x, n) cat(3,x,x,x,n), test_ap3, alpha3, 'UniformOutput', 0);
     
     % make textures of images
@@ -425,23 +418,24 @@ else
     cellTestAp3 = num2cell(cellfun(@(x) Screen('MakeTexture',window,x), testTwo));
     
     % name textures of each stim
-    [texs(1:size(texs,1)).ap1] = deal(cellTestAp1{:});
+    [texs_test(1:size(texs_test,1)).ap1] = deal(cellTestAp1{:});
     
     % the following get randomly chosen so that each are presented on left and
     % right sides of screen during 2afc (don't want the 1 / 2 pair to always be
     % on the same side)
-    [texs(1:size(texs,1)).ap2] = deal(cellTestAp2{:});
-    [texs(1:size(texs,1)).ap3] = deal(cellTestAp3{:});
+    [texs_test(1:size(texs_test,1)).ap2] = deal(cellTestAp2{:});
+    [texs_test(1:size(texs_test,1)).ap3] = deal(cellTestAp3{:});
 end
 
 
-%--------------------------------------------------------------------------
-% Next, make study word textures
-%--------------------------------------------------------------------------
-load('objectNames_2afc.mat');
-% this loads variable 'stimNames', a 221x3 cell
+    %--------------------------------------------------------------------------
+    % Next, make study word textures
+    %--------------------------------------------------------------------------
+    load('objectNames_2afc.mat');
+    % this loads variable 'stimNames', a 221x3 cell
+    
+    words = stimNames(stimTab_block.studyOrder,1);
 
-words = stimNames(stimTab_block.studyOrder,1);
-
+    
 
 end

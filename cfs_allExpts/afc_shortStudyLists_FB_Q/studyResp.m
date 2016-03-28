@@ -1,4 +1,4 @@
-function [ p ] = studyResp( p, trial )
+function [ p ] = studyResp( p, trial, string, inputHandler, input, text_Q, text_As )
 %studyResp solicit and collect (with Ask_RosieNorm_QUEUE) study resp
 % p: experimental structure
 % trial: trial number
@@ -14,6 +14,8 @@ rosie.text1 = 'no image detected - 0';
 rosie.text2 = 'possibly saw, couldn''t name - 1';
 rosie.text3 = 'definitely saw, but unsure what it was (could possibly guess) - 2';
 rosie.text4 = 'saw something very clearly, could name - 3';
+rosie.text5 = text_Q;
+rosie.text6 = text_As;
 text_answer = 'Answer:  ';
 rosie.text_enter = p.text_enter;
 
@@ -23,53 +25,50 @@ rosie.tCenter2 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, rosie.text2
 rosie.tCenter3 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, rosie.text3))/2  p.yCenter-370];
 rosie.tCenter4 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, rosie.text4))/2  p.yCenter-330];
 
+rosie.tCenter5 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, rosie.text5))/2  p.yCenter-100];
+rosie.tCenter6 = [p.xCenter-RectWidth(Screen('TextBounds', p.window, rosie.text6))/2  p.yCenter-60];
+
 answerBox = [p.xCenter-300 p.yCenter+150 p.xCenter+100 p.yCenter+550];
 rosie.tCenterEnter = p.tCenterEnter;
 
 % response keys
-rosie.keys_Response = p.keys_simpleResp+p.keys_Navigation;
-
-% textures
-rosie.texture_ITI = p.texture_ITI;
+rosie.keys_Response = p.keys_simpleResp+p.keys_Navigation + p.keys_yn;
 
 % formatting text bit
 rosie.wrapat = p.wrapat;
 
+% screen timing
+rosie.ifi = p.ifi;
+rosie.hzRate = p.hzRate;
+
+
 %% solicit response
 rosie.test = 0;
-getResp = 1;
 p.timing.startStudyResp_rt(trial) = GetSecs;
-while getResp
-    Screen(p.window,'DrawTexture', p.texture_ITI);
-    DrawFormattedText(p.window,rosie.text1,'center', rosie.tCenter1(2),[],p.wrapat,[],[],1.5);
-    Screen('DrawText', p.window, p.text_enter, p.tCenterEnter(1), p.tCenterEnter(2), []);
-    %     KbQueueRelease;
-    
-    reply=Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie); % Accept keyboard input, echo it to screen.
-    
-    p.responses.study(trial) = str2double(reply(1));
-    p.timing.endStudyResp_rt(trial) = GetSecs;
-    p.rt.study(trial) = p.timing.endStudyResp_rt(trial)-p.timing.startStudyResp_rt(trial);
-    getResp = 0;
-end
 
+% Accept keyboard input, echo it to screen.
+reply = Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie, string, inputHandler, input);
 
-% rosie.test = 1;
-% rosie.text1 = 'Please name an object that this could be a part of.';
-% rosie.keys_Response = p.keys_Response+p.keys_Navigation;
-% rosie.image = texture;
-% rosie.whiteTex = p.whiteTex;
-% rosie.whiteRect = p.whiteRect;
-% rosie.imageRect = p.imageRect;
-% rosie.greyRect = p.greyRect;
-% rosie.greyTex = p.greyTex;
-% 
-% reply_name=Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie); % Accept keyboard input, echo it to screen.
-% 
-% p.responses.study_name(trial,1:length(reply_name)) = reply_name;
-
-
+p.responses.study(trial,1:length(reply)) = reply;
+p.timing.endStudyResp_rt(trial) = GetSecs;
+p.rt.study(trial) = p.timing.endStudyResp_rt(trial)-p.timing.startStudyResp_rt(trial);
 
 
 end
 
+% function cleanedReply = cleanReply(reply)
+% 
+% if numel(reply) > 2
+%     cleanedReply = reply(1:2);
+%     
+% elseif numel(reply) < 2
+%     if numel(reply) < 1
+%         reply = ' ';
+%     end
+%     cleanedReply = [reply, reply];
+% elseif numel(reply) == 2
+%     cleanedReply = reply;
+%     
+% end
+% 
+% end

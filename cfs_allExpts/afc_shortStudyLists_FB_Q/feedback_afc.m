@@ -1,8 +1,11 @@
-function [ p ] = feedback_afc( p, trial )
+function [ p ] = feedback_afc( p, trial, input )
 %feedback_afc informs participant whether their afc response was correct
 
 
-if  str2double(p.responses.afc(trial)) == p.test_leftRight(trial)
+%%
+
+%%
+if  p.responses.afc(trial) == p.test_leftRight(trial)
     feedback_afc = 'Correct!';
 else
     feedback_afc = 'Incorrect!';
@@ -13,19 +16,21 @@ while 1
     
     % one eye
     Screen('SelectStereoDrawBuffer',p.window,(0));
-    Screen(p.window,'DrawTexture', p.texture_ITI);
+%     Screen(p.window,'DrawTexture', p.texture_ITI);
     DrawFormattedText(p.window,feedback_afc,'center', tCenter_afcFB(2),[],p.wrapat,[],[],1.5);
     Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
     
     % other eye
     Screen('SelectStereoDrawBuffer',p.window,(1));
-    Screen(p.window,'DrawTexture', p.texture_ITI);
+%     Screen(p.window,'DrawTexture', p.texture_ITI);
     DrawFormattedText(p.window,feedback_afc,'center', tCenter_afcFB(2),[],p.wrapat,[],[],1.5);
     Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
     
     % flip
     Screen('DrawingFinished', p.window);
     Screen('Flip', p.window);
+    
+    listen(input.debugLevel, 'space');
     
     % receive input
     [pressed, resp] = KbQueueCheck;
@@ -40,4 +45,3 @@ end
 
 
 end
-

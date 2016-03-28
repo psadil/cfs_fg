@@ -1,4 +1,4 @@
-function reply=Ask_Rosie(window,message,textColor,bgColor,replyFun,rectAlign1,rectAlign2,fontsize,rosie)
+function reply=Ask_Rosie(window,message,textColor,bgColor,replyFun,rectAlign1,rectAlign2,fontsize,rosie, string, inputHandler, input)
 % reply = Ask(window,message,[textColor],[bgColor],[replyFun],[rectAlign1],[rectAlign2],[fontSize=30])
 %
 % Draw the message, using textColor, right-justified in the upper right of
@@ -101,18 +101,14 @@ if nargin>5  && ~isempty(rectAlign1) && ((length(rectAlign1) ~= 4) || ischar(rec
     r=AlignRect(r,screenRect,rectAlign1);
 end
 
-if nargin<4 || isempty(bgColor)
-    bgColor=WhiteIndex(window);
-end
+% if nargin<4 || isempty(bgColor)
+%     bgColor=WhiteIndex(window);
+% end
 
-if nargin<3 || isempty(textColor)
-    textColor=BlackIndex(window);
-end
+% if nargin<3 || isempty(textColor)
+%     textColor=BlackIndex(window);
+% end
 
-
-
-% [oldX, oldY]=Screen(window,'DrawText',message,r(RectLeft),r(RectBottom),textColor);
-% Screen('Flip', window);      % asg added
 
 %% begin asking for response
 KbQueueCreate(0,rosie.keys_Response);
@@ -120,8 +116,31 @@ KbQueueStart;
 
 reply = '';
 
-i=0;
-while 1
+advance = 0;
+rt = [];
+
+%% Display text and cue resp
+redraw = 0;
+now = GetSecs;
+now = Screen('Flip', window, now + (rosie.hzRate-.5)*rosie.ifi);
+drawNow = 1;
+while advance == 0
+    
+    
+    %----------------------------------------------------------------------
+    % Check the queue for key presses.
+    %----------------------------------------------------------------------
+    
+    % hangout in this redraw loop until a keypress has been registered
+    while redraw == 0 && drawNow == 0
+        [reply, rt, advance, redraw] = inputHandler([], reply, rt, string);
+        now = GetSecs;
+    end
+    redraw = 0;
+    drawNow = 0;
+
+    
+        
     
     %----------------------------------------------------------------------
     % Draw questions
@@ -129,23 +148,21 @@ while 1
     
     % draw for one eye
     Screen('SelectStereoDrawBuffer',window,(0));
-    Screen(window,'DrawTexture', rosie.texture_ITI);
     [oldX, oldY]=Screen(window,'DrawText',message,r(RectLeft),r(RectBottom),textColor);
     DrawFormattedText(window,rosie.text1,'center', rosie.tCenter1(2),[],rosie.wrapat,[],[],1.5);
     if rosie.test == 2
-        Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect);
-        Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect);
+        Screen('FillRect',window,1,rosie.whiteRect);
+        Screen('FillRect',window,161/255,rosie.greyRect);
         Screen('DrawTexture',window, rosie.image,[],rosie.imageRect);
     elseif rosie.test == 1
         DrawFormattedText(window,rosie.text2,'center', rosie.tCenter2(2),[],rosie.wrapat,[],[],1.5);
-        
-        Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect-[350, 0, 350, 0]);
-        Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect-[350, 0, 350, 0]);
+        Screen('FillRect',window,1,rosie.whiteRect-[350, 0, 350, 0]);
+        Screen('FillRect',window,161/255,rosie.greyRect-[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imLeft1,[],rosie.imageRect-[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imLeft2,[],rosie.imageRect-[350, 0, 350, 0]);
         
-        Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect+[350, 0, 350, 0]);
-        Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect+[350, 0, 350, 0]);
+        Screen('FillRect',window,1,rosie.whiteRect+[350, 0, 350, 0]);
+        Screen('FillRect',window,161/255,rosie.greyRect+[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imRight1,[],rosie.imageRect+[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imRight2,[],rosie.imageRect+[350, 0, 350, 0]);
         
@@ -153,29 +170,30 @@ while 1
         DrawFormattedText(window,rosie.text2,'center', rosie.tCenter2(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text3,'center', rosie.tCenter3(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text4,'center', rosie.tCenter4(2),[],rosie.wrapat,[],[],1.5);
+        DrawFormattedText(window,rosie.text5,'center', rosie.tCenter5(2),[],rosie.wrapat,[],[],1.5);
+        DrawFormattedText(window,rosie.text6,'center', rosie.tCenter6(2),[],rosie.wrapat,[],[],1.5);
+        
     end
     Screen('DrawText', window, rosie.text_enter, rosie.tCenterEnter(1), rosie.tCenterEnter(2), textColor);
-    Screen(window,'DrawText',reply(1:i),oldX,oldY,textColor);
+    Screen(window,'DrawText',reply,oldX,oldY,textColor);
     
     % draw for other eye
     Screen('SelectStereoDrawBuffer',window,(1));
-    Screen(window,'DrawTexture', rosie.texture_ITI);
     [oldX, oldY]=Screen(window,'DrawText',message,r(RectLeft),r(RectBottom),textColor);
     DrawFormattedText(window,rosie.text1,'center', rosie.tCenter1(2),[],rosie.wrapat,[],[],1.5);
     if rosie.test == 2
-        Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect);
-        Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect);
+        Screen('FillRect',window,1,rosie.whiteRect);
+        Screen('FillRect',window,161/255,rosie.greyRect);
         Screen('DrawTexture',window, rosie.image,[],rosie.imageRect);
     elseif rosie.test == 1
         DrawFormattedText(window,rosie.text2,'center', rosie.tCenter2(2),[],rosie.wrapat,[],[],1.5);
-        
-        Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect-[350, 0, 350, 0]);
-        Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect-[350, 0, 350, 0]);
+        Screen('FillRect',window,1,rosie.whiteRect-[350, 0, 350, 0]);
+        Screen('FillRect',window,161/255,rosie.greyRect-[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imLeft1,[],rosie.imageRect-[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imLeft2,[],rosie.imageRect-[350, 0, 350, 0]);
         
-        Screen('DrawTexture',window,rosie.whiteTex,[],rosie.whiteRect+[350, 0, 350, 0]);
-        Screen('DrawTexture',window,rosie.greyTex,[],rosie.greyRect+[350, 0, 350, 0]);
+        Screen('FillRect',window,1,rosie.whiteRect+[350, 0, 350, 0]);
+        Screen('FillRect',window,161/255,rosie.greyRect+[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imRight1,[],rosie.imageRect+[350, 0, 350, 0]);
         Screen('DrawTexture',window, rosie.imRight2,[],rosie.imageRect+[350, 0, 350, 0]);
         
@@ -183,46 +201,18 @@ while 1
         DrawFormattedText(window,rosie.text2,'center', rosie.tCenter2(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text3,'center', rosie.tCenter3(2),[],rosie.wrapat,[],[],1.5);
         DrawFormattedText(window,rosie.text4,'center', rosie.tCenter4(2),[],rosie.wrapat,[],[],1.5);
+        DrawFormattedText(window,rosie.text5,'center', rosie.tCenter5(2),[],rosie.wrapat,[],[],1.5);
+        DrawFormattedText(window,rosie.text6,'center', rosie.tCenter6(2),[],rosie.wrapat,[],[],1.5);
+        
     end
     Screen('DrawText', window, rosie.text_enter, rosie.tCenterEnter(1), rosie.tCenterEnter(2), textColor);
-    Screen(window,'DrawText',reply(1:i),oldX,oldY,textColor);
+    Screen(window,'DrawText',reply,oldX,oldY,textColor);
     
     % display image
     Screen('DrawingFinished', window);
-    Screen('Flip', window);
+    Screen('Flip', window, now + (rosie.hzRate-.5)*rosie.ifi);
     
-    %----------------------------------------------------------------------
-    % Check the queue for key presses.
-    %----------------------------------------------------------------------
     
-    [ pressed, resp]=KbQueueCheck;
-    
-    if pressed     %Once it's been pressed...
-        replyCode=find(resp);        %Find the ascii code corresponding to the response
-        
-        if replyCode == KbName('return'),     % If 'return', accept reply and move on to next stimulus
-            break;
-        elseif replyCode == KbName('escape'); sca; return;   %If esc, exit program
-        elseif replyCode == KbName('backspace')   %If backspace...
-            if i < 1            %If there aren't any other letters to delete, ignore
-                continue;
-            else            % Otherwise, delete the last letter of reply
-                i=i-1;
-                reply = reply(1:i);
-            end
-        elseif replyCode == KbName('space')
-            i=i+1;
-            %                 space = ' ';
-            reply(i) = ' ';
-        else
-            if length(KbName(replyCode))>1
-                continue;
-            else
-                i=i+1;
-                reply(i) = KbName(replyCode);
-            end
-        end
-    end
 end
 
 
@@ -233,4 +223,5 @@ end
 % Restore text size:
 Screen('TextSize', window ,oldFontSize);
 
-return;
+
+end

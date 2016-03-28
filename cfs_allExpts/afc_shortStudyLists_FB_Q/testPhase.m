@@ -1,15 +1,7 @@
-function [p] = testPhase(p, trialsTest, list,practice)
+function [p] = testPhase(p, trialsTest, list, practice, testWords, input, inputHandler)
 % testPhase called by runPDP_objects_apertures
 
 % calls testInstructions, recallResp
-
-
-
-%% Text for both trials
-text_begin = 'A test phase will begin when you press the space bar.';
-
-% placement of text
-tCenter_Begin = [p.xCenter-RectWidth(Screen('TextBounds', p.window, text_begin))/2  p.yCenter];
 
 
 %% question/recall specific text
@@ -30,32 +22,28 @@ for testItem = 1:p.nItems.studyList
     
     p.timing.trialStart_test(trial) = GetSecs;
     
-    % record the trial onset time
-    Screen(p.window,'DrawTexture', p.texture_ITI);
-    Screen('DrawingFinished', p.window);
-    Screen('Flip', p.window);
-    
+
     %% begin 2afc response
     
     % decide which side to present
     p.test_leftRight(trial) = randi([1,2],1);
     
     if p.test_leftRight(trial) == 1
-        p = afcResp(p,trialsTest(trial).ap1, trialsTest(trial).ap2, trialsTest(trial).ap3, trial);
+        p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap2, trialsTest(item).ap3, trial, '1', input, inputHandler);
     else
-        p = afcResp(p,trialsTest(trial).ap1, trialsTest(trial).ap3, trialsTest(trial).ap2, trial);
+        p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap3, trialsTest(item).ap2, trial, '2', input, inputHandler);
     end
     
     %% provide feedback
-    p = feedback_afc(p,trial);
+    p = feedback_afc(p, trial, input);
     
-
+    
     
     %% begin recall response
     
     p.timing.startRecallResp_dur(trial) = GetSecs;
     
-    p = recallResp(p, trialsTest(item).ap1, trial, text_recall);
+    p = recallResp(p, trialsTest(item).ap1, trial, text_recall, testWords{item}, inputHandler, input);
     
     p.timing.endRecallResp_dur(trial) = GetSecs;
     p.dur.Recall(trial) = p.timing.endRecallResp_dur(trial) - p.timing.startRecallResp_dur(trial);
@@ -63,12 +51,12 @@ for testItem = 1:p.nItems.studyList
     
     %% provide recall feedback, if practice phase
     if practice
-        p = feedback_recall(p,trial);
+        p = feedback_recall(p, testWords{trial}, input);
     end
     
     %% short interval between trials
     
-    waitSomeSecs(.5, p);
+    iti(p.window,p.iti);
     
     
     %cumTime = cumTime + p.trialDur; % tells program to wait until trialDur has expired

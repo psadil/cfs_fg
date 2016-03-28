@@ -1,8 +1,15 @@
+function [] = setUpBlocking(nSubBlocks)
+
 % Creates blocked design (in set of 8), for CFS_shortStudyList expt.
 
 % 1/19/16
 % ps
 % initial write
+
+
+if ~exist([pwd, '\stimTabs\'], 'dir')
+    mkdir([pwd, '\stimTabs\']);
+end
 
 p.rndSeed = round(sum(100*clock));
 rng(p.rndSeed); 
@@ -52,7 +59,7 @@ stimTab = stimTab(1:p.nItems.unique,:);
 stimTab.pairs = Shuffle(stimTab.pairs,2);
 
 tmp = stimTab.pairs';
-[probe, itmp, iprobe] = unique(tmp(:),'stable');
+[probe, ~, ~] = unique(tmp(:),'stable');
 
 % set items into each condition
 % 1 = baseline (foil)
@@ -69,7 +76,7 @@ items = probe(1:p.nItems.unique,1);
 itemConds = repelem(1:p.nConds,p.nItems.unique/p.nConds)';
 leftPairFirst = repmat([0;1],[p.nItems.unique/2,1]);
 
-for sub = 1:25*p.nPerBlocking
+for sub = 1:nSubBlocks*p.nPerBlocking
     % assign item condition
     itemConds_block = mod(itemConds+sub, p.nConds);
     itemConds_block(itemConds_block==0) = p.nConds;
@@ -146,13 +153,17 @@ for sub = 1:25*p.nPerBlocking
     studyOrder = randperm(p.nItems.practice)'+p.nItems.unique;
     itemCond_study = randi(p.nConds,1,p.nItems.practice)';
     testOrder = randperm(p.nItems.practice)'+p.nItems.unique;
+    
+    [~ , idx] = ismember(testOrder,pairs(:,1)); 
+    
+    testPair = pairs(idx,2);
     block = ones(p.nItems.practice,1);
     
-    stims_prac = table(studyOrder, itemCond_study, testOrder, block);
+    stims_prac = table(studyOrder, itemCond_study, testOrder, testPair, block);
     
     %----------------------------------------------------------------------
     % save stim variables
     %----------------------------------------------------------------------
-    save([pwd, '/stimTabs/stimTab_sub', num2str(sub)], 'stims', 'stims_prac', 'p');
+    save([pwd, '/stimTabs/stimTab_sub', num2str(sub)], 'stims', 'stims_prac');
     
 end

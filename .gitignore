@@ -8,6 +8,8 @@ $ cat .gitignore
 *.xls
 *.jpg
 *.pdf
+*.zip
+
 
 #also ignore administrator files
 admin

@@ -12,8 +12,8 @@ text_first2 = 'You will see an example of the squares on the next slide.';
 
 text_second1 = 'Some objects will be presented as pictures. Please pay close attention to the details of these objects.';
 text_second2 = 'Some objects will be presented as words. Please imagine those objects in detail, presented over the flashing squares.';
-text_second3 = 'Occasionally, you will first see only flashing squares, but an object will emerge from those squares.';
-text_second4 = 'When that happens, you will be asked to press ''Enter'' when FIRST NOTICE ANYTHING other than the squares -- REGARDLESS of whether you could name the object. You will see an example of this on the next slide, though you may or may not be able to see the object.';
+text_second3 = 'Occasionally, you will first see only flashing squares, the object will be hidden behind those squares.';
+text_second4 = 'When that happens, you will be asked to press ''Enter'' when FIRST NOTICE ANYTHING other than the squares -- REGARDLESS of whether you know what the object was. You will see an example of this on the next slide, though you may or may not be able to see the object.';
 
 text_third1 = 'However, be careful, because sometimes no object will appear from the squares. Press Enter ONLY when you notice an object appear, and ALWAYS keep your eyes focused on the middle white square.';
 

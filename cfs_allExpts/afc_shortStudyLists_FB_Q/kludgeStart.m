@@ -6,7 +6,7 @@ addParameter(ip,'worked', 0, @isnumeric);
 addParameter(ip,'stereoMode', 1, @isnumeric);
 addParameter(ip,'winCol', 0, @isnumeric);
 parse(ip,varargin{:});
-input = ip.Results;
+% input = ip.Results;
 
 %%
 screenNumber=max(Screen('Screens'));

@@ -1,4 +1,4 @@
-function [ p ] = experimentalPhase(p, practice, input, inputHandler)
+function [ p ] = experimentalPhase(p, practice, input, inputHandler, subDir)
 %experimentalPhase calls study and practice phases, for real this time
 %   Detailed explanation goes here
 
@@ -8,7 +8,7 @@ function [ p ] = experimentalPhase(p, practice, input, inputHandler)
 if practice
     
     %text to display
-    text_beginPrac1_1 = 'In this experiment, you will be asked to study 12 lists of objects. After studying each list, your memory for details of those objects will be tested.';
+    text_beginPrac1_1 = 'In this experiment, you will be asked to study 8 lists of objects. After studying each list, your memory for details of those objects will be tested.';
     text_beginPrac2_1 = 'You will first complete one study/test cycle as practice. This cycle will look exactly like what you will encounter in the full experiment. Feel free to grab the experimenter if you have any questions.';
     text_end = 'Congrats! That''s the end of the practice phase. Please find the experimentor to continue';
     
@@ -49,21 +49,26 @@ tCenterStartTest = [p.xCenter-RectWidth(Screen('TextBounds', p.window, text_star
 p.timing.upStudy_whole = zeros(p.nTrials,1);
 p.timing.downStudy_whole = zeros(p.nTrials,1);
 
-p.dur.study_whole = zeros(p.nTrials,1);
+p.dur.study_whole = zeros(p.nTrials,1); % also contains rt for breakthrough
 p.dur.trial_study = zeros(p.nTrials,1);
 
-p.timing.trialStart_study = zeros(1, p.nTrials);
-p.timing.trialEnd_study = zeros(1, p.nTrials);
+p.timing.trialStart_study = zeros(p.nTrials,1);
+p.timing.trialEnd_study = zeros(p.nTrials,1);
 
 p.timing.startStudyResp_dur = zeros(1,p.nTrials);
 p.timing.endStudyResp_dur = zeros(1,p.nTrials);
 p.timing.startStudyResp_rt = zeros(1,p.nTrials);
 p.timing.endStudyResp_rt = zeros(1,p.nTrials);
 
+p.timing.startStudyPhase = zeros(p.nStudyLists,1);
+p.timing.endStudyPhase = zeros(p.nStudyLists,1);
+p.dur.studyPhase = zeros(p.nStudyLists,1);
+
 % item name variables
 p.responses.study = char(zeros(p.nTrials,50));
 p.testQ = zeros(p.nTrials,1);
-p.rt.study = zeros(p.nTrials,1);
+p.rt.study = zeros(p.nTrials,50);
+p.dur.studyInstr = zeros(p.nTrials,1);
 
 p.wordTrial = zeros(p.nTrials,1);
 p.foilPresent = zeros(p.nTrials,1);
@@ -84,13 +89,14 @@ p.timing.endRecallResp_rt = zeros(1,p.nItems.unique,1);
 p.timing.trialStart_test = zeros(1, p.nItems.unique);
 p.timing.trialEnd_test = zeros(1, p.nItems.unique);
 
-p.timing.startTestPhase = zeros(1,p.nStudyLists);     % which ever comes first (in or ex) will be first element referenced
-p.timing.endTestPhase = zeros(1,p.nStudyLists);
-p.dur.TestPhase = zeros(1,p.nStudyLists);
+p.timing.startTestPhase = zeros(p.nStudyLists,1);
+p.timing.endTestPhase = zeros(p.nStudyLists,1);
+p.dur.testPhase = zeros(1,p.nStudyLists);
 
-p.rt.recall = zeros(1,p.nItems.unique);
+p.rt.recall = zeros(p.nItems.unique,50);
 p.responses.recall = char(zeros(p.nItems.unique,50));
 p.responses.afc = zeros(p.nItems.unique,1);
+p.rt.afc = zeros(p.nItems.unique,50);
 
 p.test_leftRight = zeros(p.nItems.unique,1);
 
@@ -171,12 +177,14 @@ for list = 1:nStudyLists
     % one eye
     Screen('SelectStereoDrawBuffer',p.window,(0));
     DrawFormattedText(p.window,text_start_study,'center', tCenterStartStudy(2) - 100,[],p.wrapat,[],[],1.5);
-    DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2),[],p.wrapat,[],[],1.5);
+    DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2)+40,[],p.wrapat,[],[],1.5);
+    Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
     
     % other eye
     Screen('SelectStereoDrawBuffer',p.window,(1));
     DrawFormattedText(p.window,text_start_study,'center', tCenterStartStudy(2)- 100,[],p.wrapat,[],[],1.5);
-    DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2),[],p.wrapat,[],[],1.5);
+    DrawFormattedText(p.window,listText,'center', tCenterStartStudy(2)+40,[],p.wrapat,[],[],1.5);
+    Screen('DrawText', p.window, p.text_space, p.tCenterSpace(1), p.tCenterSpace(2), p.textColor);  %space bar
     
     % present to screen
     Screen('DrawingFinished', p.window);
@@ -210,11 +218,9 @@ for list = 1:nStudyLists
     %-----------------------------------------------
     
     if p.studyPhase
-        
         [p] = studyPhase(p, texs, list, words, inputHandler, input);
-        
     end
-    
+    Screen('Close', [texs.tex]);
     
     
     %----------------------------------------------------------------------
@@ -302,8 +308,14 @@ for list = 1:nStudyLists
     
     
     [p] = testPhase(p, texs, list, practice, words, input, inputHandler);
+    Screen('Close', [texs.ap1, texs.ap2, texs.ap3]);
     
-    
+    % save after each list
+    if practice
+        save([subDir, '\practiceList.mat'], 'p', 'input');
+    else
+        save([subDir, '\list', num2str(list), '.mat'], 'p', 'input');
+    end
 end
 
 
@@ -369,6 +381,13 @@ function [ texs, words ] = genBlockTexs( stimTab_full, list,window,study )
 
 stimTab_block = stimTab_full(stimTab_full.block == list,:);
 
+
+
+% load('objectNames_2afc.mat');
+[~, stimNames] = xlsread('objectNames_2afc.xlsx');
+
+% this loads variable 'stimNames', a 221x3 cell
+
 if study
     %% study textures
     
@@ -389,7 +408,10 @@ if study
     % name textures of each stim
     [texs(1:size(texs,1)).tex] = deal(cellStudy{:});
     
-    
+    %--------------------------------------------------------------------------
+    % Next, make study word textures
+    %--------------------------------------------------------------------------
+    words = stimNames(stimTab_block.studyOrder,1);
     
 else
     % test textures
@@ -432,16 +454,14 @@ else
     % on the same side)
     [texs(1:size(texs,1)).ap2] = deal(cellTestAp2{:});
     [texs(1:size(texs,1)).ap3] = deal(cellTestAp3{:});
+    
+    
+    %--------------------------------------------------------------------------
+    % Next, make study word textures
+    %--------------------------------------------------------------------------
+    words = stimNames(stimTab_block.testOrder,1);
+    
 end
-
-
-%--------------------------------------------------------------------------
-% Next, make study word textures
-%--------------------------------------------------------------------------
-load('objectNames_2afc.mat');
-% this loads variable 'stimNames', a 221x3 cell
-
-words = stimNames(stimTab_block.studyOrder,1);
 
 
 end

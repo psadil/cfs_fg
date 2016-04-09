@@ -35,8 +35,8 @@ if input.debugLevel < 1
     p.studyStimInstrDur = 2;
     p.iti = .5;
     p.break = 5;
-    p.judgeDur = 2;
-    p.fixationStart = 1.5;
+    p.judgeDur = 1;
+    p.fixationStart = 1;
 elseif input.debugLevel >= 1
     p.studyDur = 1/p.RefreshRate;
     p.studyStimInstrDur = 0;

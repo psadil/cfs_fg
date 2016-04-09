@@ -43,17 +43,10 @@ WaitSecs(p.fixationStart);
 
 
 %% begin listening for responses
-
-
-% record the trial onset time
-p.trialStart(trial) = GetSecs;
-
-%% present stimulus
-
-% Need to know exactly when stim goes on and off, and check trial length is p.trialDur
 KbQueueCreate(0,p.keys_Navigation);
 KbQueueStart;
 
+%% present stimulus
 found = 0;
 now = GetSecs;
 vbl = Screen('Flip',p.window, now + (p.hzRate-.5)*p.ifi);
@@ -71,7 +64,6 @@ for tick=1:length(texAlpha)
     Screen('FillRect',p.window,1,p.whiteRect);
     
     % draw Mondrians
-    %     Screen('FillRect',p.window,(127.5+1.5*(p.colors(:,:,mod(tick,p.nSlides)+1)-127.5)),p.mondrians(:,:,mod(tick,p.nSlides)+1)+repmat([p.leftRect(1:2)';p.leftRect(1:2)'],[1,p.nSuppressors,1]));
     Screen('FillRect',p.window,...
         .5+1.5*(p.colors(:,:,mod(tick,p.nSlides)+1)-.5),...
         p.mondrians(:,:,mod(tick,p.nSlides)+1)+repmat([p.leftRect(1:2)';p.leftRect(1:2)'],[1,p.nSuppressors,1]));
@@ -97,11 +89,9 @@ for tick=1:length(texAlpha)
     Screen('SelectStereoDrawBuffer',p.window,1);
     
     %% draw white square for background of mondrians/image
-    %     Screen('DrawTexture',p.window,p.whiteTex,[],p.whiteRect);
     Screen('FillRect',p.window,1,p.whiteRect);
     
     % draw Mondrians
-    %     Screen('FillRect',p.window,(127.5+1.5*(p.colors(:,:,mod(tick,p.nSlides)+1)-127.5)),p.mondrians(:,:,mod(tick,p.nSlides)+1)+repmat([p.leftRect(1:2)';p.leftRect(1:2)'],[1,p.nSuppressors,1]));
     Screen('FillRect',p.window,...
         .5+1.5*(p.colors(:,:,mod(tick,p.nSlides)+1)-.5),...
         p.mondrians(:,:,mod(tick,p.nSlides)+1)+repmat([p.leftRect(1:2)';p.leftRect(1:2)'],[1,p.nSuppressors,1]));
@@ -151,9 +141,9 @@ vbl = Screen('Flip',p.window, p.timing.downStudy_whole(trial)+ (p.hzRate-.5)*p.i
 
 
 % wait out full duration of study
-if input.debugLevel < 1
-    WaitSecs(p.studyDur - p.dur.study_whole(trial));
-end
+% if input.debugLevel < 1
+WaitSecs(p.studyDur - p.dur.study_whole(trial));
+% end
 
 if any(leftRightEye == 0) && numel(leftRightEye) < 3 % && input.debugLevel > 0
     

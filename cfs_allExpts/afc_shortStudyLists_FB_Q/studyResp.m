@@ -47,12 +47,12 @@ rosie.test = 0;
 p.timing.startStudyResp_rt(trial) = GetSecs;
 
 % Accept keyboard input, echo it to screen.
-reply = Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie, string, inputHandler, input);
+[reply, rt] = Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie, string, inputHandler, input);
 
 p.responses.study(trial,1:length(reply)) = reply;
 p.timing.endStudyResp_rt(trial) = GetSecs;
-p.rt.study(trial) = p.timing.endStudyResp_rt(trial)-p.timing.startStudyResp_rt(trial);
-
+% p.rt.study(trial) = p.timing.endStudyResp_rt(trial)-p.timing.startStudyResp_rt(trial);
+p.rt.study(trial, 1:length(rt)) = rt;
 
 end
 

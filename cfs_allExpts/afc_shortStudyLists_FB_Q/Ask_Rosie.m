@@ -1,4 +1,4 @@
-function reply=Ask_Rosie(window,message,textColor,bgColor,replyFun,rectAlign1,rectAlign2,fontsize,rosie, string, inputHandler, input)
+function [reply, rt]=Ask_Rosie(window,message,textColor,bgColor,replyFun,rectAlign1,rectAlign2,fontsize,rosie, string, inputHandler, input)
 % reply = Ask(window,message,[textColor],[bgColor],[replyFun],[rectAlign1],[rectAlign2],[fontSize=30])
 %
 % Draw the message, using textColor, right-justified in the upper right of
@@ -115,9 +115,9 @@ KbQueueCreate(0,rosie.keys_Response);
 KbQueueStart;
 
 reply = '';
-
-advance = 0;
 rt = [];
+advance = 0;
+
 
 %% Display text and cue resp
 redraw = 0;
@@ -137,10 +137,7 @@ while advance == 0
         now = GetSecs;
     end
     redraw = 0;
-    drawNow = 0;
-
     
-        
     
     %----------------------------------------------------------------------
     % Draw questions
@@ -212,7 +209,12 @@ while advance == 0
     Screen('DrawingFinished', window);
     Screen('Flip', window, now + (rosie.hzRate-.5)*rosie.ifi);
     
-    
+    % first point at which subjects could see stimulus, or just after they
+    % pressed enter
+    if drawNow || advance
+        rt = [rt, GetSecs]; %#ok<AGROW>
+    end
+    drawNow = 0;
 end
 
 

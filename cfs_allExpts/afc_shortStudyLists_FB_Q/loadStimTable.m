@@ -10,7 +10,7 @@ p.stimTab_prac = stims_prac;
 
 p.nPerBlocking = 8;
 
-p.nItems.unique = 192; % nItems must be in multiples of 16
+p.nItems.unique = 16*8; % nItems must be in multiples of 16
 p.nItems.practice = 16; % items seen in practice phase
 p.nConds = 4; % number of item conditions
 p.nItems.studyList = 16; % number of items seen in study list
@@ -24,8 +24,9 @@ p.nTrials = p.nItems.unique*p.nReps;
 p.nItems.studyCond = p.nItems.unique/p.nConds; % 1/4 of total items for each condition
 p.nItems.testCond = p.nItems.studyCond/2; % number of items from each condition displayed during each In/Ex block
 
-p.ind.study = repmat(repmat(1:p.nItems.studyList,[1,p.nReps]),[1,p.nStudyLists]); %+ ...
-   % repelem(0:p.nItems.studyList:p.nItems.unique-p.nItems.studyList,p.nItems.studyList*p.nReps);
+
+p.ind.study = repmat(repmat(1:p.nItems.studyList,[1,p.nReps]),[1,p.nStudyLists]) + ...
+   repelem(0:p.nItems.studyList:p.nItems.unique-p.nItems.studyList,p.nItems.studyList*p.nReps);
 
 p.ind.test = repmat(1:p.nItems.studyList,[1,p.nStudyLists]); %+ ...
  %   repelem(0:p.nItems.studyList:p.nItems.unique-p.nItems.studyList,p.nItems.studyList);

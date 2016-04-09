@@ -802,7 +802,7 @@ same as above, without error bars
 
 
 
-```{r itemsLogit warning=FALSE,echo=FALSE,fig.height=10, out.height='7in', fig.align='center'}
+```{r itemsLogit, warning=FALSE,echo=FALSE,fig.height=10, out.height='7in', fig.align='center'}
 na.rm = TRUE
 toPlot_item_avg.namedLogit <- ddply(toPlot_item_avg, c('whichItem'), .drop=TRUE,
                          .fun = function(xx, col, na.rm) {
@@ -836,6 +836,45 @@ toPlot_item_avg <- merge(toPlot_item_avg, toPlot_item_avg.afcLogit)
 
 
 ```
+
+
+## items again
+
+These are a rank order of the items that benefitted most from study in the CFS condition
+
+```{r,echo=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+ -  line indicates no benefit of binocular study. Above line indicates positive benefit, below line indicates worse performance after study
+
+```{r, itemBene}
+
+tmp <- filter(toPlot_item, condition %in% c('a_foil', 'd_binocular' ))
+
+tmpBinoc <- filter(tmp, condition == 'd_binocular') %>%
+  select(., afc, named,whichItem)
+  
+tmpFoil <- filter(tmp, condition == 'a_foil') %>%
+  select(., afc, named,whichItem)
+
+full <- cbind(tmpBinoc[,1:2] - tmpFoil[,1:2], item = tmpBinoc[,3]) %>%
+  arrange(., desc(afc),desc(named))
+
+
+plot(tmpFoil$afc, tmpBinoc$afc
+     , xlab = 'foil'
+     , ylab = 'binocular'
+     , main = 'afc in different conditions'
+     , ylim = c(0,1)
+     , xlim = c(0,1)
+     )
+abline(0,1)
+
+full
+
+```
+
 
 
 ```{r,named}

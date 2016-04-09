@@ -28,10 +28,33 @@ for testItem = 1:p.nItems.studyList
     % decide which side to present
     p.test_leftRight(trial) = randi([1,2],1);
     
-    if p.test_leftRight(trial) == 1
-        p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap2, trialsTest(item).ap3, trial, '1', input, inputHandler);
+    % during debug, check for responses
+%     KbQueueCreate(0,p.keys_simpleResp);
+%     KbQueueStart;
+%     KbQueueReserve(1, 2, 0)
+%     if p.stimTab.itemCond_test(trial) > 1
+%         giveAFC(input.debugLevel, p.test_leftRight(trial));
+%     else
+%         giveAFC(input.debugLevel, randi([1,2],1));
+%     end
+%     [~, resp] = KbQueueCheck;
+%     afc = KbName(resp);
+%     
+    %% solicit afc resp
+    if p.stimTab.itemCond_test(trial) > 1
+        if p.test_leftRight(trial) == 1
+            p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap2, trialsTest(item).ap3, trial, '1', input, inputHandler);
+        else
+            p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap3, trialsTest(item).ap2, trial, '2', input, inputHandler);
+        end
     else
-        p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap3, trialsTest(item).ap2, trial, '2', input, inputHandler);
+%         if p.test_leftRight(trial) == 1
+%             p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap2, trialsTest(item).ap3, trial, '2', input, inputHandler);
+%         else
+%             p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap3, trialsTest(item).ap2, trial, '1', input, inputHandler);
+%         end
+        p = afcResp(p,trialsTest(item).ap1, trialsTest(item).ap2, trialsTest(item).ap3, trial, num2str(randi([1,2],1)), input, inputHandler);
+        
     end
     
     %% provide feedback
@@ -58,11 +81,29 @@ for testItem = 1:p.nItems.studyList
     
     iti(p.window,p.iti);
     
-    
     %cumTime = cumTime + p.trialDur; % tells program to wait until trialDur has expired
     rTcnt = rTcnt+1;
     p.timing.trialEnd_test(trial) = GetSecs;
     p.dur.trial_test(trial) = p.timing.trialEnd_test(trial)-p.timing.trialStart_test(trial);
 end %end of loop over all test items
+
+p.timing.endTestPhase(list) = GetSecs;
+p.dur.testPhase(list) = p.timing.endTestPhase(list) - p.timing.startTestPhase(list);
+
+end
+
+
+function giveAFC(debugLevel, resp)
+
+% 
+
+if debugLevel > 0
+
+    string = num2str(resp);
+    rob = java.awt.Robot;
+    eval([ 'rob.keyPress(java.awt.event.KeyEvent.VK_', upper(string), ');' ]);
+    eval([ 'rob.keyRelease(java.awt.event.KeyEvent.VK_', upper(string), ');' ]);
+    
+end
 
 end

@@ -1,0 +1,324 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\ErrorTok}[1]{\textbf{{#1}}}
+\newcommand{\NormalTok}[1]{{#1}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={pss},
+            pdftitle={CFS, 2AFC, Short Study Lists},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{0}
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+  \title{CFS, 2AFC, Short Study Lists}
+  \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+  \author{pss}
+  \preauthor{\centering\large\emph}
+  \postauthor{\par}
+  \predate{\centering\large\emph}
+  \postdate{\par}
+  \date{February 10, 2016}
+
+
+
+\begin{document}
+
+\maketitle
+
+
+summary of results for cfs study
+
+Version: presentation in lists of 16. Items studied x3 times Note that
+second/third presentation was in the same order as first presentations
+all items studied for total of .5 seconds (including ramping up and
+down)
+
+\begin{verbatim}
+## Automatically converting the following non-factors to factors: studyResp3
+\end{verbatim}
+
+\begin{verbatim}
+## Automatically converting the following non-factors to factors: studyResp
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dfwc1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    condition studyResp   N     named   named_norm         sd         se
+## 1          1     1e+05 768 0.3125000  0.312500000 0.47001705 0.01696028
+## 2          2         1   2 0.0000000  0.003255208 0.02633441 0.01862124
+## 3          2         2   1 0.0000000 -0.014973958         NA         NA
+## 4          2         3  25 0.2800000  0.270859375 0.47937909 0.09587582
+## 5          2         4 712 0.4367978  0.435312793 0.49906596 0.01870329
+## 6          2       NaN  28 0.4285714  0.474795387 0.51034628 0.09644638
+## 7          3         1 143 0.3146853  0.336351799 0.45561837 0.03810072
+## 8          3         2 304 0.2861842  0.289902001 0.46338134 0.02657674
+## 9          3         3 172 0.3488372  0.332379482 0.48987827 0.03735287
+## 10         3         4 133 0.5639098  0.552186129 0.48628731 0.04216646
+## 11         3       NaN  16 0.3750000  0.385091146 0.53793383 0.13448346
+## 12         4         1   2 0.0000000 -0.022786458 0.01128617 0.00798053
+## 13         4         2  57 0.2982456  0.313242416 0.47575691 0.06301554
+## 14         4         3 130 0.3846154  0.402934696 0.50248163 0.04407055
+## 15         4         4 565 0.5893805  0.582721469 0.49720634 0.02091763
+## 16         4       NaN  14 0.5000000  0.540829613 0.51415914 0.13741481
+##            ci        prop
+## 1  0.03329408 1.000000000
+## 2  0.23660524 0.002604167
+## 3          NA 0.001302083
+## 4  0.19787796 0.032552083
+## 5  0.03672028 0.927083333
+## 6  0.19789163 0.036458333
+## 7  0.07531793 0.186197917
+## 8  0.05229835 0.395833333
+## 9  0.07373209 0.223958333
+## 10 0.08340942 0.173177083
+## 11 0.28664470 0.020833333
+## 12 0.10140225 0.002604167
+## 13 0.12623530 0.074218750
+## 14 0.08719467 0.169270833
+## 15 0.04108597 0.735677083
+## 16 0.29686665 0.018229167
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dfwc3}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    condition studyResp3   N     named  named_norm          sd          se
+## 1          1      1e+05 768 0.3125000  0.31250000 0.470017053 0.016960280
+## 2          2          1   1 1.0000000  0.98502604          NA          NA
+## 3          2          2   1 0.0000000  0.03710938          NA          NA
+## 4          2          3   6 0.0000000  0.03797743 0.009762039 0.003985336
+## 5          2          4 695 0.4359712  0.43322748 0.499692450 0.018954415
+## 6          2        NaN  65 0.4000000  0.42549079 0.503440602 0.062444121
+## 7          3          1 118 0.2966102  0.32409737 0.447311929 0.041178401
+## 8          3          2 282 0.2801418  0.28289838 0.458341355 0.027293830
+## 9          3          3 150 0.3133333  0.28787326 0.477109360 0.038955816
+## 10         3          4 201 0.5323383  0.52728869 0.499006368 0.035197195
+## 11         3        NaN  17 0.2941176  0.34195006 0.453293313 0.109939777
+## 12         4          1   3 0.0000000 -0.02886285 0.024573659 0.014187609
+## 13         4          2  35 0.2571429  0.26999628 0.440814860 0.074511311
+## 14         4          3  94 0.2872340  0.29880042 0.471877350 0.048670432
+## 15         4          4 613 0.5823817  0.57865709 0.498510305 0.020134642
+## 16         4        NaN  23 0.6086957  0.64489923 0.497625483 0.103762086
+##            ci        prop
+## 1  0.03329408 1.000000000
+## 2          NA 0.001302083
+## 3          NA 0.001302083
+## 4  0.01024463 0.007812500
+## 5  0.03721487 0.904947917
+## 6  0.12474647 0.084635417
+## 7  0.08155167 0.153645833
+## 8  0.05372632 0.367187500
+## 9  0.07697721 0.195312500
+## 10 0.06940522 0.261718750
+## 11 0.23306192 0.022135417
+## 12 0.06104435 0.003906250
+## 13 0.15142520 0.045572917
+## 14 0.09664983 0.122395833
+## 15 0.03954137 0.798177083
+## 16 0.21518940 0.029947917
+\end{verbatim}
+
+NOTE: 1) in these bar graphs, 1e+05 indicates the value that was given
+to foils (so, there should only be bars over the 1e+05 studyResp for the
+foil condition). 2) the NA studyResp are missing responses. 3) although
+these error bars more accurately reflect the within-subjects nature of
+the study condition factor, the y-axis is still bounded between
+{[}0,1{]}. So, I still need to figure out a reasonable way to plot those
+values\ldots{}
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-1-1.pdf}\\
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-2-1.pdf}\\
+
+looking at first presentations
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-3-1.pdf}\\
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-4-1.pdf}\\
+
+now, scatter plots
+
+\begin{verbatim}
+## Automatically converting the following non-factors to factors: studyResp3
+\end{verbatim}
+
+\begin{verbatim}
+## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced
+
+## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: position_dodge requires non-overlapping x intervals
+
+## Warning: position_dodge requires non-overlapping x intervals
+
+## Warning: position_dodge requires non-overlapping x intervals
+
+## Warning: position_dodge requires non-overlapping x intervals
+
+## Warning: position_dodge requires non-overlapping x intervals
+
+## Warning: position_dodge requires non-overlapping x intervals
+
+## Warning: position_dodge requires non-overlapping x intervals
+
+## Warning: position_dodge requires non-overlapping x intervals
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Removed 2 rows containing missing values (geom_errorbar).
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Removed 2 rows containing missing values (geom_errorbarh).
+\end{verbatim}
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-5-1.pdf}\\
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/newScatter-1.pdf}\\
+
+CFS performance is conditioned on having responded 0-2 at the third
+study opportunity. Binocular and Word is conditioned on having responded
+3
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-6-1.pdf}\\
+
+comparing PAS responses for words and binocular. Note, many possible
+points are missing. Those correspond to cases that never occurred, like
+a rating of 1 to the binocular condition
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-7-1.pdf}\\
+
+Plot just the average of CFS, given responses below 3
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-8-1.pdf}\\
+
+By Subjects
+
+Still looking at test performance as judged by third PAS response
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-9-1.pdf}\\
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-10-1.pdf}\\
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# rRates.cond_sem}
+\CommentTok{# afcRates.cond_sem}
+\end{Highlighting}
+\end{Shaded}
+
+next, look at the state traces by subject
+
+\textbf{first presentation}
+
+\textbf{second presentation}
+
+\textbf{third presentation}
+
+\begin{verbatim}
+## [1] 5
+\end{verbatim}
+
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-19-1.pdf}\\
+In the following graph, note that the highest of each group of bars
+shifts one bar to the right for each gropu (0-3). This says that, for a
+PAS of 3 on the first presentation, the most likely PAS on the second is
+3. Similarly, for a PAS of 2 on the first presentation, the most likely
+is a 2 on the second (followed by a 1). For 1 on the first, mostly
+likely is a second 1 (followed by 2). For 0, the most likely is split
+between 0 and 1.
+\includegraphics{cfs_obj_2afc_shorter_ggplot_files/figure-latex/unnamed-chunk-20-1.pdf}\\
+
+\end{document}

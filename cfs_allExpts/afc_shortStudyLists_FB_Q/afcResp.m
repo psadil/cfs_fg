@@ -47,16 +47,12 @@ rosie.ifi = p.ifi;
 rosie.hzRate = p.hzRate;
 
 %% solicit response
-% getResp = 1;
-% p.timing.startTestResp_rt(trial) = GetSecs;
-% while getResp
-% DrawFormattedText(p.window,rosie.text1,'center', rosie.tCenter1(2),[],p.wrapat,[],[],1.5);
-% Screen('DrawText', p.window, p.text_enter, p.tCenterEnter(1), p.tCenterEnter(2), []);
 
-reply = Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie, string, inputHandler, input); % Accept keyboard input, echo it to screen.
+[reply, rt] = Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie, string, inputHandler, input); % Accept keyboard input, echo it to screen.
 
 p.responses.afc(trial) = str2double(reply(1));
+p.rt.afc(trial, 1:length(rt)) = rt;
 
-Screen('Close', [ap_left, ap_right]);
+
 end
 

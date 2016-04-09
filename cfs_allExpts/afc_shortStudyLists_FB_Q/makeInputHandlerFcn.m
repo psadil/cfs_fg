@@ -58,6 +58,7 @@ end
                     case KbName('return') %13 is return
                         if ~isempty(string) % set the advance flag if final input has been given
                             advance = 1;
+                            rt = [rt firstPress(keys(i))]; %#ok<AGROW>
                         end
                         redraw = 1;
                     case KbName('escape')
@@ -71,7 +72,8 @@ end
                         % string will not be ''.
                         if ~strcmp('',string)
                             string = string(1:end-1);
-                            rt = rt(1:end-1);
+                            rt = [rt firstPress(keys(i))]; %#ok<AGROW>
+%                             rt = rt(1:end-1);
                         end
                         redraw = 1;
                     case KbName('space')

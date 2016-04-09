@@ -20,13 +20,13 @@ elseif input.debugLevel == 0
     inputHandler = makeInputHandlerFcn('KbQueue');
 end
 
-%%
+%% set up necessary directories
 if ~exist([pwd, '\subjectData\'], 'dir')
     mkdir([pwd, '\subjectData\']);
 end
 
 
-
+%%
 % set up experiment
 if input.debugLevel > 0
     prompt = {'Subject Number', 'Include Practice?', 'Include Study Phase?', 'stereoMode','Right Eye Dominant?'};
@@ -44,7 +44,7 @@ if input.debugLevel > 0
     end
     
 else
-    prompt = {'Subject Number', 'Right Eye Dominant?'};
+    prompt = {'Subject  Number', 'Right Eye Dominant?'};
     
     defAns = {'SubNum','1'}; %fill in some stock answers to the gui input boxes
     box = inputdlg(prompt,'Enter Subject Information...', 1, defAns);
@@ -61,19 +61,15 @@ end
 p.rndSeed = round(sum(100*clock));
 rng(p.rndSeed);
 
-%% set up necessary directories
 
-p.root = pwd;
-if ~exist([p.root, '\subjectData\'], 'dir')
-    mkdir([p.root, '\subjectData\']);
-end
+
 
 %% test for data file
 
-fName = [pwd, '\subjectData\', 'Subject', num2str(p.subNum), 'CFS_afc_FB_Q.mat'];
+subDir = [pwd, '\subjectData\', 'Subject', num2str(p.subNum)];
 
-if exist(fName,'file')
-    query = questdlg('File name already exists. Do you want to overwrite?', 'title', 'No' );
+if exist(subDir,'dir')
+    query = questdlg('Subject number already used. Do you want to overwrite?', 'title', 'No' );
     switch query
         case 'No'
             sca
@@ -84,12 +80,14 @@ if exist(fName,'file')
         case 'Yes'
             clear query
     end
+else
+    mkdir(subDir);
 end
 
 % try
 %% Demographics
 
-Demographics(p.subNum)
+Demographics(subDir)
 
 %% load stim table
 
@@ -114,24 +112,25 @@ p.tCenterEnter = [p.xCenter-RectWidth(Screen('TextBounds', p.window, p.text_ente
 
 % about 1/4 foils are shown as such, these serve as catch trials for CFS
 % condition
-p.catchRatio = .25;
+p.catchRatio = .3;
 
 %% begin practice phase
+startPrac = GetSecs;
 if p.practice
-    
     %begin practice phase
-    experimentalPhase(p, p.practice, input, inputHandler);
+    experimentalPhase(p, p.practice, input, inputHandler, subDir);
 end
+p.dur.prac = GetSecs - startPrac;
 
 
-startExp = GetSecs;
 %% run experimental phase
-
-p = experimentalPhase(p, 0, input, inputHandler);
+startExp = GetSecs;
+p = experimentalPhase(p, 0, input, inputHandler, subDir);
+p.dur.exp = GetSecs - startExp;
 
 % save data
-p.dur.exp = GetSecs - startExp;
-save(fName, 'p', 'input');
+
+save([subDir, '\final.mat'], 'p', 'input');
 
 
 % Shutdown realtime scheduling:

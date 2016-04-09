@@ -1,4 +1,4 @@
-function [] = Demographics(subNum)
+function [] = Demographics(subDir)
 
 %--------------------------------------------------------%
 % Onscreen script to record race/ethnic/sex demographics %
@@ -101,7 +101,7 @@ else
 end
 
 % Record output to a text file
-fid = fopen([pwd, '\subjectData\Demographics_sub', num2str(subNum) ,'.txt'], 'wt' );
+fid = fopen([subDir '\demographics.txt'], 'wt' );
 for i = 1:3
     fprintf( fid, sprintf( [ output{i} '\n' ] ) );
 end

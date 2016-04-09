@@ -11,14 +11,19 @@ if ~exist([pwd, '\stimTabs\'], 'dir')
     mkdir([pwd, '\stimTabs\']);
 end
 
-p.rndSeed = round(sum(100*clock));
-rng(p.rndSeed); 
+seed= round(sum(100*clock));
+rng(seed); 
 
+%----------------------------------------------------------------------
+% save seed
+%----------------------------------------------------------------------
+save([pwd, '/stimTabs/seed.txt'], 'seed');
 
 %%
 p.nPerBlocking = 8;
 
-p.nItems.unique = 192; % nItems must be in multiples of 16
+p.nItems.unique = 128; % nItems must be in multiples of 16
+firstPracticeItem = 193;
 p.nItems.practice = 16; % items seen in practice phase
 p.nConds = 4; % number of item conditions
 p.nItems.studyList = 16; % number of items seen in study list
@@ -53,10 +58,17 @@ p.ind.testList = 1:p.nItems.studyList:p.nItems.unique;
 
 % put pairs in to table
 stimTab = table(pairs);
-stimTab = stimTab(1:p.nItems.unique,:);
+stimTab = stimTab(1:192,:);
+
+% pairs to not use
+delItems = [5,9,10,12,17,21,22,24,27,35,38,36,41,42,46,48,49,51,54,55,63,65,67,70,75,77,82,83,84,87,91,92,93,94,101,106,105,108,109,114,116,120,127,130,132,134,136,138,142,148,149,152,158,160,164,168,169,171,173,175,178,180,182,190];
+
+stimTab = removerows(stimTab,delItems);
 
 % randomize order
 stimTab.pairs = Shuffle(stimTab.pairs,2);
+
+
 
 tmp = stimTab.pairs';
 [probe, ~, ~] = unique(tmp(:),'stable');
@@ -150,7 +162,7 @@ for sub = 1:nSubBlocks*p.nPerBlocking
     %----------------------------------------------------------------------
     % set up practice stim list
     %----------------------------------------------------------------------
-    studyOrder = randperm(p.nItems.practice)'+p.nItems.unique;
+    studyOrder = randperm(p.nItems.practice)'+firstPracticeItem-1;
     itemCond_study = randi(p.nConds,1,p.nItems.practice)';
     testOrder = randperm(p.nItems.practice)'+p.nItems.unique;
     

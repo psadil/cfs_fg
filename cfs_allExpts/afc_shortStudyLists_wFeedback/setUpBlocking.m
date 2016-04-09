@@ -6,8 +6,8 @@
 % rng('shuffle');
 % s = rng;
 
-p.rndSeed = round(sum(100*clock));
-rand('state',p.rndSeed);  %actually seed the random number generator
+% p.rndSeed = round(sum(100*clock));
+% rand('state',p.rndSeed);  %actually seed the random number generator
 
 % save('blockSeed',p.rndSeed)
 

@@ -53,14 +53,13 @@ p.timing.startRecallResp_rt(trial) = GetSecs;
 % display full image (stim part) and instructions for answering either
 % inclusion or exclusion recall question
 rosie.test = 2;
-reply = Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie, string, inputHandler, input); % Accept keyboard input, echo it to screen.
+[reply, rt] = Ask_Rosie(p.window,text_answer,p.textColor,p.windowColor,'GetChar',answerBox,'center',p.fontSize, rosie, string, inputHandler, input); % Accept keyboard input, echo it to screen.
 
 %--------------------------------------------------------------------------
 % NOTE: Ask_Rosie will only exit after a response has been given
 p.timing.endRecallResp_rt(trial) = GetSecs;
-p.rt.recall(trial) = p.timing.endRecallResp_rt(trial) - p.timing.startRecallResp_rt(trial);
 p.responses.recall(trial,1:length(reply)) = reply;
+p.rt.recall(trial, 1:length(rt)) = rt;
 
-Screen('Close',texture);
-% Screen('Close',rosie.image);
+
 end

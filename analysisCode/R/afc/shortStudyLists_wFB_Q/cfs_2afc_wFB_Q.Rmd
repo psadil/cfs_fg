@@ -13,9 +13,9 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo=FALSE)
 library(ggplot2)
 library(gridExtra)
 library(pander)
-source("C:/Users/admin/Documents/R/fns.R")
+source("D:/Documents/R/fns.R")
 
-setwd("C:/Users/admin/googleDrive/uMass/firstYear/behavioralExpts/pSadil/processDissociation/CFS/cfs_fg/analysisCode/R/afc/shortStudyLists_wFB_Q")
+setwd("D:/documents/uMass/firstYear/behavioralExpts/cfs_fg/analysisCode/R/afc/shortStudyLists_wFB_Q")
 wd <- getwd()
 
 ```
@@ -34,43 +34,18 @@ data_study <- read.csv(dataFile)
 # join by subject, and item
 data <- inner_join(x=data_test,y=data_study, by=c('whichItem','subject')) %>%
   rename(., condition=condition.x) %>%
-  mutate(., pas1 = studyResp, pas2 = studyResp2)
-
-# make PAS rating out of study responses
-data[data$studyResp==1,]$pas1 = 3
-data[data$studyResp==8,]$pas1 = 3
-data[data$studyResp==2,]$pas1 = 2
-data[data$studyResp==7,]$pas1 = 2
-data[data$studyResp==3,]$pas1 = 1
-data[data$studyResp==6,]$pas1 = 1
-data[data$studyResp==4,]$pas1 = 0
-data[data$studyResp==5,]$pas1 = 0
+  mutate(., pas1 = plyr::mapvalues(studyResp, from=1:8, to=c(3,2,1,0,0,1,2,3))) %>%
+  mutate(., pas2 = plyr::mapvalues(studyResp2, from=1:8, to=c(3,2,1,0,0,1,2,3))) %>%
+  mutate(., condition = plyr::mapvalues(condition, from=1:4, to=c('a_foil','b_word','c_cfs','d_binocular')))
 
 
-data[data$studyResp2==1,]$pas2 = 3
-data[data$studyResp2==8,]$pas2 = 3
-data[data$studyResp2==2,]$pas2 = 2
-data[data$studyResp2==7,]$pas2 = 2
-data[data$studyResp2==3,]$pas2 = 1
-data[data$studyResp2==6,]$pas2 = 1
-data[data$studyResp2==4,]$pas2 = 0
-# data[data$studyResp2==5,]$pas2 = 0
-
-
-
-# add 1 to study resp because participants were instructed to use 0-3
 
 nS <- lapply(data, FUN = max, na.rm=TRUE)
+
+# add 1 to study resp because participants were instructed to use 0-3
 nS$pas1 <- nS$pas1+1
 nS$nPerCond <- nS$nItems / nS$nConds 
 nS$nStudy = nS$nTrials * nS$nPresent
-
-
-
-data[data$condition==1,]$condition = 'a_foil'
-data[data$condition==2,]$condition = 'b_word'
-data[data$condition==3,]$condition = 'c_cfs'
-data[data$condition==4,]$condition = 'd_binocular'
 
 data[,c('subject','condition','whichItem','studyResp','studyResp2','pas1','pas2','list')] <- lapply(data[,c('subject','condition','whichItem','studyResp','studyResp2','pas1','pas2','list')], FUN=factor)
 
@@ -84,14 +59,11 @@ studyConds <- c("foil","word","cfs","binoc")
 cols <- c('black', 'cornflowerblue', 'darkgoldenrod1', 'red')
 pasResps <- c("0","1","2","3")
 
-# trim away missing values (there aren't, currently)
-data_trim <- na.omit(data)
-
 
 cutoff = 3 # only look at CFS with PAS 2 or 1
 nPresent = 3 # presented 3 times
 
-pd <- position_dodge(0.001)
+pd <- position_dodge(1)
 detach(package:dplyr)
 ```
 
@@ -122,7 +94,7 @@ NOTE:
 
 ```{r,echo=FALSE,warning=FALSE}
 ggplot(dfwc3, aes(x=pas2, y=named)) +
-  geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
+  geom_bar(position=pd, colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=named-ci, ymax=named+ci)) +
   facet_grid(. ~ condition ) +
   xlab("PAS") + 
@@ -133,7 +105,7 @@ ggplot(dfwc3, aes(x=pas2, y=named)) +
 
 ```{r,echo=FALSE,warning=FALSE}
 ggplot(dfwc3, aes(x=pas2, y=prop)) +
-  geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
+  geom_bar(position=pd, colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=prop-ci, ymax=prop+ci)) +
   facet_grid(. ~ condition ) +
   xlab("PAS") + 
@@ -147,7 +119,7 @@ looking at first presentations
 
 ```{r,echo=FALSE,warning=FALSE}
 ggplot(dfwc1, aes(x=pas1, y=named)) +
-  geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
+  geom_bar(position=pd, colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=named-ci, ymax=named+ci)) +
   facet_grid(. ~ condition ) +
   xlab("PAS") + 
@@ -158,7 +130,7 @@ ggplot(dfwc1, aes(x=pas1, y=named)) +
 
 ```{r,echo=FALSE,warning=FALSE}
 ggplot(dfwc1, aes(x=pas1, y=prop)) +
-  geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
+  geom_bar(position=pd, colour="black", stat="identity") +
   geom_errorbar(width=.25, aes(ymin=prop-ci, ymax=prop+ci)) +
   facet_grid(. ~ condition ) +
   xlab("PAS") + 
@@ -189,7 +161,7 @@ detach(package:plyr)
 ```{r,pas_condi_graph,echo=FALSE,warning=FALSE}
 
 ggplot(dfwc_pas, aes(x=pas2, y=p3Gp1)) +
-  geom_bar(position=position_dodge(.9), colour="black", stat="identity") +
+  geom_bar(position=pd, colour="black", stat="identity") +
   facet_grid(. ~ pas1 ) +
   facet_wrap(~ pas1, ncol=3) +
   xlab("PAS") + 
@@ -222,7 +194,7 @@ toPlot_stAll <- cbind(named=name_all$named
                       ,afc_all
                       ,count=(afc_all$N+name_all$N)/2)
 
-
+detach(package:plyr)
 ```
 
 
@@ -230,8 +202,6 @@ toPlot_stAll <- cbind(named=name_all$named
 ggplot(toPlot_stAll, aes(x=afc, y=named, colour=condition, group=condition)) +
   geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
   geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
-  # ylim(0,1) +
-  # xlim(0,1) +
   geom_point(position=pd, size=1)  +  #aes(size=count)
   coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
   scale_y_continuous(breaks=seq(from=0, to=1, by=0.25)) +
@@ -246,7 +216,6 @@ ggplot(toPlot_stAll, aes(x=afc, y=named, colour=condition, group=condition)) +
 
 
 ```{r,st_byList,warning=FALSE,echo=FALSE,fig.height=10, out.height='10in', fig.align='center'}
-detach(package:plyr)
 library(dplyr)
 
 afc_all_list <- summarySEwithin(data, measurevar="afc",
@@ -271,7 +240,7 @@ summarySEwithin(data, measurevar="named",
   theme(axis.ticks = element_blank())
 
 
-
+detach(package:dplyr)
 ```
 
 
@@ -284,6 +253,7 @@ what follows is a state trace in which items that went in to the cfs condition w
 ```
 
 ```{r,st_plot_trim,warning=FALSE,echo=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+library(dplyr)
 
 afc <- select(data,subject, condition, named, afc, pas1) %>%  
   filter(., (condition == 'd_binocular' & pas1 == 3) |
@@ -320,7 +290,7 @@ select(data,subject, condition, named, afc, pas1) %>%
 
 
 
-
+detach(package:dplyr)
 ```
 
 
@@ -329,7 +299,6 @@ select(data,subject, condition, named, afc, pas1) %>%
 
 ```{r,echo=FALSE,warning=FALSE}
 # state trace plots
-
 
 dfwc3_afc <- summarySEwithin(data, measurevar="afc", withinvars=c("condition","pas2"),
                              idvar="subject", na.rm=TRUE, conf.interval=.95)

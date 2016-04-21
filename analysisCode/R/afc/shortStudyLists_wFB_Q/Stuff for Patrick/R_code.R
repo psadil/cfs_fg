@@ -65,7 +65,7 @@ SDTlikelihood = function( resp, correct, kappa, dprime, prob = F) {
 ###
 ###
 
-plotYes = F
+plotYes = T
 if (plotYes) {
   # Example parameters
   dprime = 1.5

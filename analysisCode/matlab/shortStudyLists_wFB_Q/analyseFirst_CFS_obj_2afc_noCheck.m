@@ -18,7 +18,8 @@ confusedSubjects = 0;
 % sub 28 didn't finish
 % sub 21 is the first one with the correct stimTab
 % sub 30 stopped giving responses
-missingData = [1:8,9,10,14:20,24,28,30];
+% prior to sub 38, not working
+missingData = [1:38,39,42,43,46,47,52,56,59,60,61,62];
 
 for subNum = start:numSubjects,
     
@@ -80,6 +81,8 @@ for subNum = start:numSubjects,
             results.study.pas(i) = 7;
         elseif all(p.responses.study(i,1:2)=='y3')
             results.study.pas(i) = 8;
+        elseif all(p.responses.study(i,1:19) == 'FOIL, NOT PRESENTED')
+            results.study.pas(i) = 9;
         end
         
     end

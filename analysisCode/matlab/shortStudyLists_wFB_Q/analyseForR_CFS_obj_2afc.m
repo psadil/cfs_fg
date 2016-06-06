@@ -24,21 +24,20 @@ subIndex = 0;
 % prior to sub 38, not working
 missingData = [1:38,39,42,43,46,47,52,56,59,60,61,62];
 
+% the following were missing afc responses
+missingData = [missingData, 44, 45, 48, 49, 50, 57, 58];
 
-%other thoughts
-% sub 26 basically only responded on those ones that were correct...DIDN"T
-% GUESS!!
 
-for subNum = firstSub:lastSub
+for sub = firstSub:lastSub
     subIndex=subIndex+1;
     nValidSubjects = nValidSubjects+1;
     
-    if any(subNum==missingData),
+    if any(sub==missingData),
         subIndex = subIndex-1; 
         continue;
     end
     
-    fileName = [pwd '\subjectData\scored\Subject' num2str(subNum) 'CFS_AFC_ss1_wFB_Q_scored_noCheck.mat'];
+    fileName = [pwd '\subjectData\scored\Subject' num2str(sub) 'CFS_AFC_ss1_wFB_Q_scored_noCheck.mat'];
     load(fileName)
     
     %% Useful variables to be used as filters for the data
@@ -71,24 +70,25 @@ for subNum = firstSub:lastSub
     end
         
      
-    
-    
     %----------------------------------------------------------------------
     % RT
     %----------------------------------------------------------------------
     rt1 = zeros(p.nItems.unique,1);
     rt2 = zeros(p.nItems.unique,1);
-    for trial = 1:p.nItems.unique*p.nReps
-        tmp = p.rt.study(trial,find(p.rt.study(trial,:)));
-        if ~isempty(tmp)
-            if trial <= p.nItems.unique
-                rt1(trial) = tmp(end) - tmp(1);
-            else
-                rt2(trial - p.nItems.unique) = tmp(end) - tmp(1);
+    trial=0;
+    for list = 1:p.nStudyLists
+        for rep = 1:p.nReps
+            for item = 1:p.nItems.studyList
+                trial = trial + 1;
+                if rep == 1
+                    rt1(p.ind.study(trial)) = p.dur.study_whole(trial);
+                else
+                    rt2(p.ind.study(trial)) = p.dur.study_whole(trial);
+                end
             end
         end
     end
-    
+        
     %----------------------------------------------------------------------
     % study List
     %----------------------------------------------------------------------
@@ -112,8 +112,15 @@ for subNum = firstSub:lastSub
     testTrial = 1:p.nItems.unique;  
     
     afcCorrect = results.afc_correct;
-        
-    outPut(1:p.nItems.unique,:) = [sub_subject', sub_condition, sub_named', afcCorrect, whichItem, testTrial'];
+     
+    % left gets stored as 0, right as 1
+    whichSide = p.test_leftRight - 1;
+    whichResp = p.responses.afc - 1;
+    
+    
+    %% output
+    outPut(1:p.nItems.unique,:) = [sub_subject', sub_condition, sub_named',...
+        afcCorrect, whichSide, whichResp, whichItem, testTrial'];
     
     % tack each subjects' data to the total structure
     expforR.outPut = cat(1,expforR.outPut, outPut);
@@ -137,10 +144,12 @@ subject = expforR.outPut(:,1);
 condition = expforR.outPut(:,2);
 named = expforR.outPut(:,3);
 afc = expforR.outPut(:,4);
-whichItem = expforR.outPut(:,5);
-trial = expforR.outPut(:,6);
+whichSide = expforR.outPut(:,5);
+whichResp = expforR.outPut(:,6);
+whichItem = expforR.outPut(:,7);
+trial = expforR.outPut(:,8);
 
-outPutTable = table(subject,condition,named,afc,whichItem,trial);
+outPutTable = table(subject,condition,named,afc,whichSide,whichResp,whichItem,trial);
 
 
 %% create data file for R

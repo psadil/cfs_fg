@@ -141,9 +141,8 @@ vbl = Screen('Flip',p.window, p.timing.downStudy_whole(trial)+ (p.hzRate-.5)*p.i
 
 
 % wait out full duration of study
-% if input.debugLevel < 1
 WaitSecs(p.studyDur - p.dur.study_whole(trial));
-% end
+
 
 if any(leftRightEye == 0) && numel(leftRightEye) < 3 % && input.debugLevel > 0
     

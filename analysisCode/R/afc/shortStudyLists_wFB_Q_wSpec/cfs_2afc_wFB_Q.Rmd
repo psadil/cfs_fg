@@ -1,0 +1,741 @@
+---
+title: "CFS, 2AFC, Short Study Lists, FB, Q, word special questions"
+author: "pss"
+date: "April 27th, 2016"
+output: pdf_document
+---
+
+summary of results for cfs study
+
+```{r, preamble, echo=FALSE,warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo=FALSE)
+
+library(ggplot2)
+library(gridExtra)
+library(pander)
+source("D:/Documents/R/fns.R")
+
+setwd("D:/documents/uMass/firstYear/behavioralExpts/cfs_fg/analysisCode/R/afc/shortStudyLists_wFB_Q_wSpec")
+wd <- getwd()
+
+```
+
+```{r,data,echo=FALSE,warning=FALSE, message=FALSE}
+library(dplyr)
+
+dataFile <- paste(wd, "/cfs_afc_ss1_wFB_Q_noCheck.dat", sep="")
+# find the data that was generated from the matlab files
+data_test <- read.csv(dataFile)
+
+dataFile <- paste(wd, "/cfs_afc_ss1_wFB_Q_noCheck_study.dat", sep="")
+# find the data that was generated from the matlab files
+data_study <- read.csv(dataFile)
+
+# join by subject, and item
+data <- inner_join(x=data_test,y=data_study, by=c('whichItem','subject')) %>%
+  rename(., condition=condition.x) %>%
+  mutate(., pas1 = plyr::mapvalues(studyResp, from=0:9, to=c(-1,3,2,1,0,0,1,2,3,NA))) %>%
+  mutate(., pas2 = plyr::mapvalues(studyResp2, from=0:9, to=c(-1,3,2,1,0,0,1,2,3,NA))) %>%
+  mutate(., condition = plyr::mapvalues(condition, from=1:4, to=c('a_foil','b_word','c_cfs','d_binocular')))
+
+
+
+nS <- lapply(data, FUN = max, na.rm=TRUE)
+
+# add 1 to study resp because participants were instructed to use 0-3
+nS$pas1 <- nS$pas1+1
+nS$nPerCond <- nS$nItems / nS$nConds 
+nS$nStudy = nS$nTrials * nS$nPresent
+
+
+data <- mutate(data, pas1 = plyr::mapvalues(pas1, from=c(-1,NA), c('NR','fNS'))) %>%
+  mutate(., pas2 = plyr::mapvalues(pas2, from=c(-1,NA), c('NR','fNS')))
+
+
+data[,c('subject','condition','whichItem','studyResp','studyResp2','pas1','pas2','list')] <- lapply(data[,c('subject','condition','whichItem','studyResp','studyResp2','pas1','pas2','list')], FUN=factor)
+
+
+
+# don't want PAS as a factor, because there are 
+# vastly different numbers of each kind of response
+# Do I want condition as factor? if it were, that would
+# seem to make stronger claims (justified) about higher levels
+# leading to higher recall rates
+studyConds <- c("foil","word","cfs","binoc")
+cols <- c('black', 'cornflowerblue', 'darkgoldenrod1', 'red')
+pasResps <- c("0","1","2","3")
+
+
+cutoff = 3 # only look at CFS with PAS 2 or 1
+nPresent = 3 # presented 3 times
+
+pd <- position_dodge(width = 1)
+detach(package:dplyr)
+```
+
+
+```{r, withinErrorBars, echo=FALSE,warning=FALSE, message=FALSE}
+library(plyr)
+
+dfwc3 <- summarySEwithin(data, measurevar="named"
+                         , withinvars=c("condition","pas2"),
+                         idvar="subject", na.rm=FALSE, conf.interval=.95)
+dfwc3<-ddply(dfwc3,.(condition),transform,prop=N/sum(N))
+
+dfwc1 <- summarySEwithin(data, measurevar="named"
+                         , withinvars=c("condition","pas1"),
+                         idvar="subject", na.rm=FALSE, conf.interval=.95)
+
+dfwc1<-ddply(dfwc1,.(condition),transform,prop=N/sum(N))
+detach(package:plyr)
+```
+
+
+## CFS masking results
+
+NOTE: 
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+ggplot(dfwc3, aes(x=pas2, y=prop)) +
+  geom_bar(position=pd, colour="black", stat="identity") +
+  geom_errorbar(width=.25, aes(ymin=prop-ci, ymax=prop+ci)) +
+  facet_grid(. ~ condition ) +
+  ylim(0,1) +
+  xlab("PAS") + 
+  ylab("proportion") +
+  ggtitle("proportion of each PAS (second presentation) in each condition")
+
+```
+
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+ggplot(dfwc3, aes(x=pas2, y=named)) +
+  geom_bar(position=pd, colour="black", stat="identity") +
+  geom_errorbar(width=.25, aes(ymin=named-ci, ymax=named+ci)) +
+  facet_grid(. ~ condition ) +
+  ylim(0,1) +
+  xlab("PAS") + 
+  ylab("named") +
+  ggtitle("% named for each condition, given second PAS")
+
+```
+
+
+looking at first presentations
+
+```{r,echo=FALSE,warning=FALSE}
+ggplot(dfwc1, aes(x=pas1, y=named)) +
+  geom_bar(position=pd, colour="black", stat="identity") +
+  geom_errorbar(width=.25, aes(ymin=named-ci, ymax=named+ci)) +
+  facet_grid(. ~ condition ) +
+  ylim(0,1) +
+  xlab("PAS") + 
+  ylab("named") +
+  ggtitle("% named for each condition, given first PAS")
+
+```
+
+```{r,echo=FALSE,warning=FALSE}
+ggplot(dfwc1, aes(x=pas1, y=prop)) +
+  geom_bar(position=pd, colour="black", stat="identity") +
+  geom_errorbar(width=.25, aes(ymin=prop-ci, ymax=prop+ci)) +
+  facet_grid(. ~ condition ) +
+  ylim(0,1) +
+  xlab("PAS") + 
+  ylab("proportion") +
+  ggtitle("proportion of each PAS (first presentation) in each condition")
+
+```
+
+
+```{r, pas_conditional,echo=FALSE,warning=FALSE}
+library(plyr)
+dfwc_pas <- summarySEwithin(data, measurevar="named", withinvars=c("pas1","pas2"),
+                            idvar="subject", na.rm=FALSE, conf.interval=.95)
+
+dfwc_pas<-ddply(dfwc_pas,.(pas2),transform,p3Gp1=N/sum(N))
+
+dfwc_pas_cfs <- summarySEwithin(data[data$condition=='c_cfs',], measurevar="named",                          withinvars=c("pas1","pas2"),
+                                idvar="subject", na.rm=FALSE, conf.interval=.95)
+
+dfwc_pas_cfs<-ddply(dfwc_pas_cfs,.(pas2),transform,p3Gp1=N/sum(N))
+
+
+
+detach(package:plyr)
+```
+
+
+```{r,pas_condi_graph,echo=FALSE,warning=FALSE}
+
+ggplot(dfwc_pas, aes(x=pas2, y=p3Gp1)) +
+  geom_bar(position=pd, colour="black", stat="identity") +
+  facet_grid(. ~ pas1 ) +
+  facet_wrap(~ pas1, ncol=3) +
+  ylim(0,1) +
+  xlab("PAS") + 
+  ylab("p(PAS_3|PAS_1)") +
+  ggtitle(" Proportion of second PAS given first PAS ")
+
+
+```
+
+
+
+## State Trace, overall
+
+now, scatter plots
+
+
+```{r,stateTrace_avg,warning=FALSE,echo=FALSE}
+library(plyr)
+afc_all <- summarySEwithin(data, measurevar="afc",
+                           withinvars=c("condition"),
+                           idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+name_all <- summarySEwithin(data, measurevar="named",
+                            withinvars=c("condition"),
+                            idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+toPlot_stAll <- cbind(named=name_all$named
+                      ,named_norm=name_all$named_norm
+                      ,ci_named=name_all$ci
+                      ,afc_all
+                      ,count=(afc_all$N+name_all$N)/2)
+
+detach(package:plyr)
+```
+
+
+```{r,st_plot_avg,warning=FALSE,echo=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+ggplot(toPlot_stAll, aes(x=afc, y=named, colour=condition, group=condition)) +
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05) +
+  geom_point(size=1)  +  #aes(size=count)
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  scale_y_continuous(breaks=seq(from=0, to=1, by=0.25)) +
+  ggtitle("state trace, for each condition, collapsed across PAS/presentations") +
+  theme(aspect.ratio = 1) +
+  # theme(axis.ticks = element_blank(), axis.text.x = element_blank()) +
+  theme(axis.ticks = element_blank())
+
+
+
+```
+
+
+```{r,st_byList,warning=FALSE,echo=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+library(dplyr)
+
+afc_all_list <- summarySEwithin(data, measurevar="afc",
+                           withinvars=c("condition", 'list'),
+                           idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+summarySEwithin(data, measurevar="named",
+                            withinvars=c("condition", 'list'),
+                            idvar="subject", na.rm=TRUE, conf.interval=.95) %>%
+  inner_join(x=., y=afc_all_list, by = c('condition', 'list','N')) %>%
+  
+  ggplot(data=., aes(x=afc, y=named, colour=condition, group=condition)) +
+  geom_point(size=1) +
+  geom_errorbar(aes(ymin=named-ci.x, ymax=named+ci.x), colour="black", width=.05) +
+  geom_errorbarh(aes(xmin=afc-ci.y, xmax=afc+ci.y), colour="black", height=.05) +
+  facet_grid(. ~ list ) +
+  facet_wrap(~ list, ncol=3) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  #scale_y_continuous(breaks=seq(from=0, to=1, by=0.25)) +
+  ggtitle("state trace, by list") +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank())
+
+
+detach(package:dplyr)
+```
+
+
+what follows is a state trace in which items that went in to the cfs condition were given a 2 on the third pas, but items in the word and binocular conditions were given a 3
+
+```{r trimmed,warning=FALSE}
+# note that many fewer data points go in to the CFS point (pay attention to the 'count' column)
+# pander(toPlot_stTrim)
+
+```
+
+```{r,st_plot_trim,warning=FALSE,echo=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+library(dplyr)
+
+afc <- select(data,subject, condition, named, afc, pas1) %>%  
+  filter(., (condition == 'd_binocular' & pas1 == 3) |
+           (condition == 'a_foil') |
+           (condition == 'b_word' & pas1 == 3) |
+           (condition == 'c_cfs' & pas1 == 2)) %>%
+  group_by(., subject, condition) %>%
+  summarySEwithin(., measurevar="afc",
+                  withinvars=c("condition"),
+                  idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+
+select(data,subject, condition, named, afc, pas1) %>%  
+  filter(., (condition == 'd_binocular' & pas1 == 3) |
+           (condition == 'a_foil') |
+           (condition == 'b_word' & pas1 == 3) |
+           (condition == 'c_cfs' & pas1 == 2)) %>%
+  group_by(., subject, condition) %>%
+  summarySEwithin(., measurevar="named",
+                  withinvars=c("condition"),
+                  idvar="subject", na.rm=TRUE, conf.interval=.95) %>%
+  inner_join(x=afc, y=., by = c('condition','N')) %>%
+
+  ggplot(data = ., aes(x=afc, y=named, colour=condition, group=condition)) +
+  geom_errorbar(aes(ymin=named-ci.y, ymax=named+ci.y), colour="black", width=.05, position=pd) +
+  geom_errorbarh(aes(xmin=afc-ci.x, xmax=afc+ci.x), colour="black", height = .05, position=pd) +
+  geom_point(position=pd, size=1)  +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  scale_y_continuous(breaks=seq(from=0, to=1, by=0.25)) +
+  ggtitle("state trace, (cfs==2), (word & binoc == 3)") +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank())
+  
+
+
+
+detach(package:dplyr)
+```
+
+
+
+
+
+```{r,echo=FALSE,warning=FALSE}
+# state trace plots
+
+dfwc3_afc <- summarySEwithin(data, measurevar="afc", withinvars=c("condition","pas2"),
+                             idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+toPlot3 <- cbind(named=dfwc3$named,ci_named=dfwc3$ci
+                 ,dfwc3_afc,count=(dfwc3$N+dfwc3_afc$N)/2)
+
+
+dfwc1_afc <- summarySEwithin(data, measurevar="afc", withinvars=c("condition","pas1"),
+                             idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+toPlot1 <- cbind(named=dfwc1$named,ci_named=dfwc1$ci
+                 ,dfwc1_afc,count=(dfwc1$N+dfwc1_afc$N)/2)
+
+
+```
+
+
+
+```{r,scatterPlots_third_noSize,echo=FALSE,warning=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+
+ggplot(toPlot3, aes(x=afc, y=named, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  geom_point(size=1) +
+  facet_grid(. ~ pas2 ) +
+  facet_wrap(~ pas2, ncol=3) +
+  ggtitle("state trace, facets indicate PAS response on second presentation") +
+  theme(aspect.ratio = 1) 
+
+```
+
+
+
+```{r,scatterPlots_third,echo=FALSE,warning=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+
+
+ggplot(toPlot3, aes(x=afc, y=named, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  geom_point(aes(size=count)) +
+  scale_size_continuous(breaks=c(10,100,200,400,600)) +
+  facet_grid(. ~ pas2 ) +
+  facet_wrap(~ pas2, ncol=3) +
+  ggtitle("state trace, facets indicate PAS response on second presentation") +
+  theme(aspect.ratio = 1) 
+
+pander(toPlot3)
+
+```
+
+
+In the above graph, size of dot indicates amount of data going in to point
+
+```{r,scatterPlots_first,echo=FALSE,warning=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+
+# ggplot(toPlot1, aes(x=afc, y=named, colour=condition, group=condition)) + 
+#   geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
+#   geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
+#   coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+#   geom_point(position=pd, aes(size=count))  +
+#   scale_size_continuous(breaks=c(10,100,200,400,600)) +
+#   facet_grid(. ~ studyResp ) +
+#   facet_wrap(~ studyResp, ncol=3) +
+#   ggtitle("state trace, facets indicate PAS response on first presentation") +
+#   theme(aspect.ratio = 1)
+
+
+```
+
+## Subjects
+
+now, look at individual subjects (normalized scores)
+NOTE: the normalized and raw scores look similar, but they are at least a little bit different in each graph
+- the raw numbers are printed at the bottom of the document
+
+```{r,subData,echo=FALSE,warning=FALSE}
+afc_sub <- summarySEwithin(data, measurevar="afc",
+                           withinvars=c("condition","subject"),
+                           idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+name_sub <- summarySEwithin(data, measurevar="named",
+                            withinvars=c("condition","subject"),
+                            idvar="subject", na.rm=TRUE, conf.interval=.95)
+
+
+toPlot_sub <- cbind(named=name_sub$named
+                    ,named_norm=name_sub$named_norm
+                    ,ci_named=name_sub$ci
+                    ,afc_sub
+                    ,count=(afc_sub$N+name_sub$N)/2)
+
+
+
+```
+
+
+```{r,st_sub_graph1,echo=FALSE,warning=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+# ggplot(toPlot_sub, aes(x=afc_norm, y=named_norm, colour=condition, group=condition)) + 
+#   geom_errorbar(aes(ymin=named_norm-ci_named, ymax=named_norm+ci_named), colour="black", width=.05, position=pd) +
+#   geom_errorbarh(aes(xmin=afc_norm-ci, xmax=afc_norm+ci), colour="black", height = .05, position=pd) +
+#   # ylim(0,1) +
+#   # xlim(0,1) +
+#   coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+#   scale_y_continuous(breaks=c(0,1)) +
+#   scale_x_continuous(breaks=c(0,1)) +
+#   geom_point(position=pd, size=1)  +  #aes(size=count)
+#   #  scale_size_continuous(breaks=c(10,100,200,400,600)) +
+#   facet_grid(. ~ subject ) +
+#   facet_wrap(~ subject, ncol=5) +
+#   ggtitle("state trace, by subject, normalized scores") +
+#   theme(aspect.ratio = 1) +
+#   theme(axis.ticks = element_blank())
+# # theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+
+```{r,st_sub_graph2,echo=FALSE,warning=FALSE, fig.height=10, out.height='10in', fig.align='center'}
+ggplot(toPlot_sub, aes(x=afc, y=named, colour=condition, group=condition)) + 
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05) +
+  # ylim(0,1) +
+  # xlim(0,1) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  scale_y_continuous(breaks=c(0,1)) +
+  scale_x_continuous(breaks=c(0,1)) +
+  geom_point(size=1)  +  #aes(size=count)
+  #  scale_size_continuous(breaks=c(10,100,200,400,600)) +
+  facet_grid(. ~ subject ) +
+  facet_wrap(~ subject, ncol=5) +
+  ggtitle("state trace, by subject, raw scores") +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank())
+# theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+
+```{r, subjectByList, fig.height=10, out.height='10in', fig.align='center'}
+
+# afc_subList <- summarySEwithin(data, measurevar="afc",
+#                            withinvars=c("condition", 'list', 'subject'),
+#                            idvar="subject", na.rm=TRUE, conf.interval=.95)
+# 
+# summarySEwithin(data, measurevar="named",
+#                             withinvars=c("condition", 'list', 'subject'),
+#                             idvar="subject", na.rm=TRUE, conf.interval=.95) %>%
+#   inner_join(x=afc_subList, y=., by = c('condition', 'list','N','subject')) %>%
+#   
+#   ggplot(data=., aes(x=afc, y=named, colour=condition, group=condition)) +
+#   geom_errorbar(aes(ymin=named-ci.x, ymax=named+ci.x), colour="black", width=.05, position=pd) +
+#   geom_errorbarh(aes(xmin=afc-ci.y, xmax=afc+ci.y), colour="black", height = .05, position=pd) +
+#   geom_point(position=pd, size=1) +
+#   facet_grid(. ~ list:subject ) +
+#   facet_wrap(~ list:subject, ncol=3) +
+#   coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+#   scale_y_continuous(breaks=seq(from=0, to=1, by=0.25)) +
+#   ggtitle("state trace, by list") +
+#   theme(aspect.ratio = 1) +
+#   theme(axis.ticks = element_blank())
+
+
+```
+
+## Items
+
+
+```{r items,warning=FALSE,echo=FALSE,fig.height=10, out.height='10in', fig.align='center'}
+
+
+
+items_named <- summarySEwithin(data, measurevar="named"
+                               , withinvars=c("condition","whichItem"),
+                               idvar="whichItem", na.rm=FALSE, conf.interval=.95)
+
+items_afc <- summarySEwithin(data, measurevar="afc"
+                             , withinvars=c("condition","whichItem"),
+                             idvar="whichItem", na.rm=FALSE, conf.interval=.95)
+
+toPlot_item <- cbind(named=items_named$named
+                     ,named_norm=items_named$named_norm
+                     ,ci_named=items_named$ci
+                     ,items_afc
+                     ,count=(items_afc$N+items_named$N)/2)
+
+
+items_named_avg <- summarySEwithin(data, measurevar="named"
+                                   , withinvars=c("whichItem"),
+                                   idvar="whichItem", na.rm=FALSE, conf.interval=.95)
+
+items_afc_avg <- summarySEwithin(data, measurevar="afc"
+                                 , withinvars=c("whichItem"),
+                                 idvar="whichItem", na.rm=FALSE, conf.interval=.95)
+
+toPlot_item_avg <- cbind(named=items_named_avg$named
+                         ,named_norm=items_named_avg$named_norm
+                         ,ci_named=items_named_avg$ci
+                         ,items_afc_avg
+                         ,count=(items_afc_avg$N+items_named_avg$N)/2)
+
+
+```
+
+plotting performance for all items
+NOTE: item positions do not line up across grids. That is, a point that appears to be in the same place on all for grids may be from different items. These graphs tell us, when an item was ina given condition, how often it was named and how often people picked the correct pair in the afc
+
+```{r warning=FALSE,echo=FALSE,fig.height=10, out.height='8in', fig.align='center'}
+
+ggplot(toPlot_item, aes(x=afc, y=named, colour=condition, group=condition)) +
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05) +
+  geom_point(size=2)  +  # count
+  # scale_size_continuous(breaks=c(50,100,150,200)) +
+  facet_grid(. ~ condition ) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  scale_y_continuous(breaks=c(0,1)) +
+  scale_x_continuous(breaks=c(0,1)) +
+  facet_wrap(~ condition, ncol=2) +
+  ggtitle("state trace, for each items") +
+  # ylim(0,1) +
+  # xlim(0,1) +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank())
+# theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+
+same plot as above, but without the error bars for easier viewing
+
+```{r warning=FALSE,echo=FALSE,fig.height=10, out.height='8in', fig.align='center'}
+
+ggplot(toPlot_item, aes(x=afc, y=named, colour=condition, group=condition)) +
+  # geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
+  # geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
+  geom_point(size=2)  +  # count
+  # scale_size_continuous(breaks=c(50,100,150,200)) +
+  facet_grid(. ~ condition ) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  scale_y_continuous(breaks=c(0,1)) +
+  scale_x_continuous(breaks=c(0,1)) +
+  facet_wrap(~ condition, ncol=2) +
+  ggtitle("state trace, for each items") +
+  # ylim(0,1) +
+  # xlim(0,1) +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank())
+# theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+
+item rates, collapsed across all conditions
+count = 29 because there are 29 subjects
+
+```{r warning=FALSE,echo=FALSE,fig.height=10, out.height='7in', fig.align='center'}
+
+ggplot(toPlot_item_avg, aes(x=afc, y=named)) +
+  geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05) +
+  geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05) +
+  geom_point(aes(size=count))  +  # count
+  # scale_size_continuous(breaks=c(50,100,150,200)) +
+  # facet_grid(. ~ condition ) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  scale_y_continuous(breaks=c(0,1)) +
+  scale_x_continuous(breaks=c(0,1)) +
+  # facet_wrap(~ condition, ncol=2) +
+  ggtitle("state trace, for each item") +
+  # ylim(0,1) +
+  # xlim(0,1) +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank())
+# theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+
+same as above, without error bars
+
+
+```{r warning=FALSE,echo=FALSE,fig.height=10, out.height='7in', fig.align='center'}
+
+ggplot(toPlot_item_avg, aes(x=afc, y=named)) +
+  # geom_errorbar(aes(ymin=named-ci_named, ymax=named+ci_named), colour="black", width=.05, position=pd) +
+  # geom_errorbarh(aes(xmin=afc-ci, xmax=afc+ci), colour="black", height = .05, position=pd) +
+  geom_point(aes(size=count))  +  # count
+  # scale_size_continuous(breaks=c(50,100,150,200)) +
+  # facet_grid(. ~ condition ) +
+  coord_cartesian(xlim = c(0, 1), ylim = c(0,1)) +
+  scale_y_continuous(breaks=c(0,1)) +
+  scale_x_continuous(breaks=c(0,1)) +
+  # facet_wrap(~ condition, ncol=2) +
+  ggtitle("state trace, for each item") +
+  # ylim(0,1) +
+  # xlim(0,1) +
+  theme(aspect.ratio = 1) +
+  theme(axis.ticks = element_blank())
+# theme(axis.ticks = element_blank(), axis.text.y = element_blank())
+
+
+```
+
+
+```{r,echo=FALSE, warning=FALSE}
+
+```
+
+
+```{r itemsLogit, warning=FALSE,echo=FALSE,fig.height=10, out.height='7in', fig.align='center'}
+# library(plyr)
+# 
+# na.rm = TRUE
+# toPlot_item_avg.namedLogit <- ddply(toPlot_item_avg, c('whichItem'), .drop=TRUE,
+#                                     .fun = function(xx, col, na.rm) {
+#                                       c(namedLogit = logit(xx[,col]))
+#                                     },
+#                                     'named',
+#                                     na.rm
+# )
+# toPlot_item_avg.afcLogit <- ddply(toPlot_item_avg, c('whichItem'), .drop=TRUE,
+#                                   .fun = function(xx, col, na.rm) {
+#                                     c(afcLogit = logit(xx[,col]))
+#                                   },
+#                                   'afc',
+#                                   na.rm
+# )
+# 
+# toPlot_item_avg <- merge(toPlot_item_avg, toPlot_item_avg.namedLogit)
+# toPlot_item_avg <- merge(toPlot_item_avg, toPlot_item_avg.afcLogit)
+# 
+# 
+# ggplot(toPlot_item_avg[toPlot_item_avg$afcLogit != Inf & toPlot_item_avg$namedLogit != -Inf & toPlot_item_avg$namedLogit != Inf,], aes(x=afcLogit, y=namedLogit)) +
+#   geom_point(position=pd, aes(size=count))  +  # count
+#   coord_cartesian(xlim = c(-4, 4), ylim = c(-4,4)) +
+#   scale_y_continuous(breaks=c(-4,4)) +
+#   scale_x_continuous(breaks=c(-4,4)) +
+#   ggtitle("state trace, item, logit transformed scores") +
+#   theme(aspect.ratio = 1) +
+#   theme(axis.ticks = element_blank())
+# 
+# detach(package:plyr)
+```
+
+
+## items again
+
+These are a rank order of the items that benefitted most from study in the CFS condition
+
+-  line indicates no benefit of binocular study. Above line indicates positive benefit, below line indicates worse performance after study
+
+```{r,echo=FALSE, warning=FALSE}
+
+
+```
+
+
+```{r, itemBene}
+library(dplyr)
+tmp <- filter(toPlot_item, condition %in% c('a_foil', 'd_binocular' ))
+
+tmpBinoc <- filter(tmp, condition == 'd_binocular') %>%
+  select(., afc, named,whichItem)
+
+tmpFoil <- filter(tmp, condition == 'a_foil') %>%
+  select(., afc, named,whichItem)
+
+full <- cbind(tmpBinoc[,1:2] - tmpFoil[,1:2], item = tmpBinoc[,3]) %>%
+  arrange(., desc(afc),desc(named))
+
+
+plot(tmpFoil$afc, tmpBinoc$afc
+     , xlab = 'foil'
+     , ylab = 'binocular'
+     , main = 'afc in different conditions'
+     , ylim = c(0,1)
+     , xlim = c(0,1)
+)
+abline(0,1)
+
+full
+detach(package:dplyr)
+```
+
+
+```{r, stimPairs}
+library(dplyr)
+
+objPairs <- read.csv('stimPairings.csv', header=FALSE)
+objPairs <- objPairs[,1:2] %>%
+  rename(., item = V1, obj2 = V2) %>%
+  mutate(., item = factor(item), obj2 = factor(obj2))
+
+full2 <- mutate(full, obj2 = item)
+  
+# the lowest of the following will be taken out to reduce the study down to 
+# just 6 lists
+t<-inner_join(x=full, y=objPairs, by='item') %>%
+  inner_join(x=full2, y=., by = 'obj2') %>%
+  select(., item.x, afc.x, item.y, afc.y) %>%
+  mutate(., meanAFCIncrease = rowMeans(.[,c(2,4)])) %>%
+  arrange(., desc(meanAFCIncrease))
+  
+# these are the items that weren't used
+t[97:128,]
+
+detach(package:dplyr)
+```
+
+
+```{r,named, echo=TRUE}
+# collapsed across subjects, grouped by condition and pas response to the first study
+pander(dfwc1)
+
+# collapsed across subjects, grouped by condition and pas response to the third study
+pander(dfwc3)
+
+# data for every subject, grouped by condition, collapsed across all pas ratings for all three study presentations
+pander(toPlot_sub)
+```

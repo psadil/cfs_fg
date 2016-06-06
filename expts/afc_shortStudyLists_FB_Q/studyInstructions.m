@@ -13,12 +13,12 @@ text_first2 = 'You will see an example of the squares on the next slide.';
 text_second1 = 'Some objects will be presented as pictures. Please pay close attention to the details of these objects.';
 text_second2 = 'Some objects will be presented as words. Please imagine those objects in detail, presented over the flashing squares.';
 text_second3 = 'Occasionally, you will first see only flashing squares, the object will be hidden behind those squares.';
-text_second4 = 'When that happens, you will be asked to press ''Enter'' when FIRST NOTICE ANYTHING other than the squares -- REGARDLESS of whether you know what the object was. You will see an example of this on the next slide, though you may or may not be able to see the object.';
+text_second4 = 'When that happens, you will be asked to press ''Enter'' when you FIRST NOTICE ANYTHING other than the squares -- REGARDLESS of whether you know what the object was. You will see an example of this on the next slide, though you may or may not be able to see the object.';
 
-text_third1 = 'However, be careful, because sometimes no object will appear from the squares. Press Enter ONLY when you notice an object appear, and ALWAYS keep your eyes focused on the middle white square.';
+text_third1 = 'However, be careful, because sometimes no object or word will appear. Press Enter ONLY when you notice an object appear, and ALWAYS keep your eyes focused on the center white square.';
 
 text_fourth1 = 'After every object is presented, you will be asked a question about the picture. These questions will have TWO parts.';
-text_fourth2 = 'The FIRST part will require a yes or no answer, and will relate to the object itself.';
+text_fourth2 = 'The FIRST part will require a yes (y) or no (n) answer, and will relate to the object itself.';
 text_fourth3 = 'If the object was shown as a picture, please answer BASED ON THE PICTURE.';
 text_fourth4 = 'If the object was shown as a word, please answer based on your IMAGINED object.';
 
@@ -27,10 +27,10 @@ text_fifth2 = 'Was the object symmetric across either its horizontal or vertical
 text_fifth3 = 'Did the object fill more than 1/4 of the flashing squares?';
 text_fifth4 = 'Was the object reflective?';
 text_fifth5 = 'Did the object contain multiple parts?';
-text_fifth6 = 'Even if you did not see an object, please still respond to this question.';
+text_fifth6 = 'Even if you did not see an object or word, please still respond to this question.';
 
 
-text_six1 = 'The SECOND part of the question will be about how well you saw the object (if one was present)';
+text_six1 = 'The SECOND part of the question will be about how well you saw the object or word (again, please answer even if one wasn''t present)';
 text_six2 = 'If you CLEARLY SAW something besides the squares, AND COULD NAME IT, answer 3.';
 text_six3 = 'If you DEFINITELY saw something, but are unsure what (though you might be able to guess), answer 2';
 text_six4 = 'If you only POSSIBLY saw something, but COULDN''T accurately say what it was, answer 1';

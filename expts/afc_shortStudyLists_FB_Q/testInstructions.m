@@ -17,7 +17,7 @@ text_Second1 = 'For example you may have seen the following object in the study 
 text_Second2 = 'a light switch';
 
 text_Third1 = 'Your first task will be to choose between pairs, like what''s shown below';
-text_Third2 = 'Use the 0 to indicate LEFT, and 1 to indicate RIGHT. (Answer: 0 (left))';
+text_Third2 = 'Use the 1 to indicate LEFT, and 2 to indicate RIGHT. (Answer: 1 (left))';
 
 text_Fourth1 = 'Then, you will see just a PART of an object, like the one below';
 text_Fourth2 = 'If you remembered what this is a part of, you would ANSWER: light switch.';

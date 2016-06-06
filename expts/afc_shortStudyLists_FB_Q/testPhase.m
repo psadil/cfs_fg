@@ -40,6 +40,9 @@ for testItem = 1:p.nItems.studyList
 %     [~, resp] = KbQueueCheck;
 %     afc = KbName(resp);
 %     
+        p.check.testCond(trial) = p.stimTab.itemCond_study(trial);
+        p.check.testOrder(trial) = p.stimTab.studyOrder(trial);
+
     %% solicit afc resp
     if p.stimTab.itemCond_test(trial) > 1
         if p.test_leftRight(trial) == 1

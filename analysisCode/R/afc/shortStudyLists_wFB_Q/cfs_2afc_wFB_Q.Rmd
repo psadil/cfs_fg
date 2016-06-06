@@ -13,66 +13,14 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo=FALSE)
 library(ggplot2)
 library(gridExtra)
 library(pander)
-source("D:/Documents/R/fns.R")
+library(utilityFns)
 
 setwd("D:/documents/uMass/firstYear/behavioralExpts/cfs_fg/analysisCode/R/afc/shortStudyLists_wFB_Q")
 wd <- getwd()
 
+source("loadData.R")
+
 ```
-
-```{r,data,echo=FALSE,warning=FALSE, message=FALSE}
-library(dplyr)
-
-dataFile <- paste(wd, "/cfs_afc_ss1_wFB_Q_noCheck.dat", sep="")
-# find the data that was generated from the matlab files
-data_test <- read.csv(dataFile)
-
-dataFile <- paste(wd, "/cfs_afc_ss1_wFB_Q_noCheck_study.dat", sep="")
-# find the data that was generated from the matlab files
-data_study <- read.csv(dataFile)
-
-# join by subject, and item
-data <- inner_join(x=data_test,y=data_study, by=c('whichItem','subject')) %>%
-  rename(., condition=condition.x) %>%
-  mutate(., pas1 = plyr::mapvalues(studyResp, from=0:9, to=c(-1,3,2,1,0,0,1,2,3,NA))) %>%
-  mutate(., pas2 = plyr::mapvalues(studyResp2, from=0:9, to=c(-1,3,2,1,0,0,1,2,3,NA))) %>%
-  mutate(., condition = plyr::mapvalues(condition, from=1:4, to=c('a_foil','b_word','c_cfs','d_binocular')))
-
-
-
-nS <- lapply(data, FUN = max, na.rm=TRUE)
-
-# add 1 to study resp because participants were instructed to use 0-3
-nS$pas1 <- nS$pas1+1
-nS$nPerCond <- nS$nItems / nS$nConds 
-nS$nStudy = nS$nTrials * nS$nPresent
-
-
-data <- mutate(data, pas1 = plyr::mapvalues(pas1, from=c(-1,NA), c('NR','fNS'))) %>%
-  mutate(., pas2 = plyr::mapvalues(pas2, from=c(-1,NA), c('NR','fNS')))
-
-
-data[,c('subject','condition','whichItem','studyResp','studyResp2','pas1','pas2','list')] <- lapply(data[,c('subject','condition','whichItem','studyResp','studyResp2','pas1','pas2','list')], FUN=factor)
-
-
-
-# don't want PAS as a factor, because there are 
-# vastly different numbers of each kind of response
-# Do I want condition as factor? if it were, that would
-# seem to make stronger claims (justified) about higher levels
-# leading to higher recall rates
-studyConds <- c("foil","word","cfs","binoc")
-cols <- c('black', 'cornflowerblue', 'darkgoldenrod1', 'red')
-pasResps <- c("0","1","2","3")
-
-
-cutoff = 3 # only look at CFS with PAS 2 or 1
-nPresent = 3 # presented 3 times
-
-pd <- position_dodge(width = 1)
-detach(package:dplyr)
-```
-
 
 ```{r, withinErrorBars, echo=FALSE,warning=FALSE, message=FALSE}
 library(plyr)
@@ -721,13 +669,13 @@ t<-inner_join(x=full, y=objPairs, by='item') %>%
   arrange(., desc(meanAFCIncrease))
   
 # these are the items that weren't used
-#t[97:128,]
+t[97:128,]
 
 detach(package:dplyr)
 ```
 
 
-```{r,named, echo=TRUE}
+```{r,named, echo=FALSE}
 # collapsed across subjects, grouped by condition and pas response to the first study
 pander(dfwc1)
 
@@ -736,4 +684,44 @@ pander(dfwc3)
 
 # data for every subject, grouped by condition, collapsed across all pas ratings for all three study presentations
 pander(toPlot_sub)
+```
+
+
+# Reaction Time
+
+```{r, echo=FALSE}
+# library(dplyr)
+
+ggplot(data=data, mapping = aes(rt1)) +
+  geom_histogram()
+
+
+```
+
+
+
+# mixed effects
+
+```{r, echo=FALSE}
+library(lme4)
+
+l1 = glmer(named ~ 1 + condition + (1 | subject) + (1 | whichItem), data=data, family=binomial)
+summary(l1)
+
+
+binomial_smooth <- function(...) {
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)
+}
+
+# ggplot(data, aes(x=condition, y=ifelse(afc == "afc", 1, 0))) +
+#   geom_point(alpha=.5) +
+#   geom_jitter(height = 0.05) +
+#   binomial_smooth() +
+#   
+#   scale_y_discrete("Probability of correct afc", limits=c(0,1)) +
+#   scale_x_continuous("(log) word frequency") +
+#   coord_cartesian(ylim = c(-.1,1.1)) +
+#   facet_wrap(~ subject)
+
+
 ```

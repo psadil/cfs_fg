@@ -22,7 +22,7 @@ save([pwd, '/stimTabs/seed.txt'], 'seed');
 %%
 p.nPerBlocking = 8;
 
-p.nItems.unique = 96; % nItems must be in multiples of 16
+p.nItems.unique = 128; % nItems must be in multiples of 16
 firstPracticeItem = 193;
 p.nItems.practice = 16; % items seen in practice phase
 p.nConds = 4; % number of item conditions
@@ -54,20 +54,14 @@ p.ind.testList = 1:p.nItems.studyList:p.nItems.unique;
 % are seen in the same condition
 
 % load a list of which objects are paired together
-[pairs,~] = xlsread('stimPairings.csv');
+[pairs,~] = xlsread('stimPairings.xlsx');
 
 % put pairs in to table
 stimTab = table(pairs);
 stimTab = stimTab(1:192,:);
 
-% pairs to not use. These are the ones for which, from earlier editions of the
-% expt, performance on AFC was not benefitted much by binocular study
-delItems = [5,9,10,12,17,21,22,24,27,35,38,36,41,42,46,48,49,51,54,55,63,...
-    65,67,70,75,77,82,83,84,87,91,92,93,94,101,106,105,108,109,114,116,...
-    120,127,130,132,134,136,138,142,148,149,152,158,160,164,168,169,171,...
-    173,175,178,180,182,190, ...
-    4,34,165,45,78,98,66,95,31,47,39,18,118,35,20,71,117,115,185,183,156,150,144,...
-    140,90,76,57,113,52,26,121,61];
+% pairs to not use
+delItems = [5,9,10,12,17,21,22,24,27,35,38,36,41,42,46,48,49,51,54,55,63,65,67,70,75,77,82,83,84,87,91,92,93,94,101,106,105,108,109,114,116,120,127,130,132,134,136,138,142,148,149,152,158,160,164,168,169,171,173,175,178,180,182,190];
 
 stimTab = removerows(stimTab,delItems);
 
@@ -93,10 +87,6 @@ items = probe(1:p.nItems.unique,1);
 
 itemConds = repelem(1:p.nConds,p.nItems.unique/p.nConds)';
 leftPairFirst = repmat([0;1],[p.nItems.unique/2,1]);
-
-% vector for study question indexing
-studyQ.obj = repelem(1:4,p.nItems.unique*((p.nConds-1)/(4*p.nConds)));
-studyQ.word = repelem(5:8, p.nItems.unique*(1/(4*p.nConds)));
 
 for sub = 1:nSubBlocks*p.nPerBlocking
     % assign item condition
@@ -166,14 +156,6 @@ for sub = 1:nSubBlocks*p.nPerBlocking
     stimTmp.itemCond_test = itemCond_test;
     stimTmp.leftFirst_test = leftFirst_test;
     stimTmp.block = repelem(1:p.nStudyLists, p.nItems.studyList)';
-    
-    % set up study Q order
-    studyQ_obj_sub = Shuffle(studyQ.obj);
-    studyQ_word_sub = Shuffle(studyQ.word);
-    
-    stimTmp.studyQ = zeros(p.nItems.unique,1);
-    stimTmp.studyQ(stimTmp.itemCond_study~=2) = studyQ_obj_sub;
-    stimTmp.studyQ(stimTmp.itemCond_study==2) = studyQ_word_sub;
     
     stims = stimTmp;
     

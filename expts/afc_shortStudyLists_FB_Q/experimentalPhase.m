@@ -21,11 +21,11 @@ else
 end
 
 % text
-text_endStudy1 = 'Congratulations! This study phase is over.';
+text_endStudy1 = 'Congratulations! This study list is over.';
 text_endStudy2 = 'A test phase will begin in a few seconds.';
 
 % begin study phase text
-text_start_study = 'A study phase will begin when you press the space bar. DO NOT lean towards the monitor. REMEMBER: please keep your eyes relaxed and focused on the white square in the center of the screen.';
+text_start_study = 'A study phase will begin when you press the space bar (be patient, loading takes a moment...). DO NOT lean towards the monitor. REMEMBER: please keep your eyes relaxed and focused on the white square in the center of the screen.';
 
 % begin test phase text
 text_start_test = 'A test phase will begin when you press the space bar.';

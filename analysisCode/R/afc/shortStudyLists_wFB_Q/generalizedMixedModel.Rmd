@@ -1,0 +1,57 @@
+---
+title: "Generalized Mixed Models"
+author: "pss"
+date: "May 13, 2016"
+output: html_document
+---
+
+```{r, preamble, echo=FALSE,warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo=FALSE)
+
+library(ggplot2)
+library(gridExtra)
+library(pander)
+library(lme4)
+source("D:/Documents/R/fns.R")
+
+setwd("D:/documents/uMass/firstYear/behavioralExpts/cfs_fg/analysisCode/R/afc/shortStudyLists_wFB_Q")
+wd <- getwd()
+
+source("loadData.R")
+library(dplyr)
+
+```
+
+
+```{r, model}
+
+
+# desgin matrix
+d<-data
+X <- factor(c('c_cfs','a_foil','b_word','d_binocular'))
+d$condition <- factor(d$condition,levels(d$condition)[c(3,1,2,4)])
+contrasts(d$condition) <- contr.treatment(X)
+
+
+# model
+model_full = glmer(afc ~ 1 + condition + (1 | subject) + (1 | whichItem) + (1 | whichItem:condition)+ (1 | subject:condition),
+              data=d, family=binomial)
+
+
+model_restr = glmer(afc ~ 1 + condition + (1 | subject) + (1 | whichItem),data=d, family=binomial)
+anova(model_full,model_restr)
+
+# so, it seems like there is no particular reason to model either subject:condition or item:condition effects
+summary(model_restr)
+
+
+```
+
+
+```{r, longData}
+
+gather(data, key = state, score, afc, named) %>%
+  mutate(., state=factor(state)) %>%
+  glmer(score ~ 1 + condition:state + (1 | subject) + (1 | whichItem),data=., family=binomial) %>%
+  summary(.)
+```

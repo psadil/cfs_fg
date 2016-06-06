@@ -1,0 +1,63 @@
+---
+title: "stateTrace"
+author: "pss"
+date: "May 13, 2016"
+output: html_document
+---
+
+```{r, preamble, echo=FALSE,warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo=FALSE)
+
+library(ggplot2)
+library(gridExtra)
+library(pander)
+library(lme4)
+library(dplyr)
+library(StateTrace)
+library(tidyr)
+source("D:/Documents/R/fns.R")
+
+setwd("D:/documents/uMass/firstYear/behavioralExpts/cfs_fg/analysisCode/R/afc/shortStudyLists_wFB_Q")
+wd <- getwd()
+
+source("loadData.R")
+
+```
+
+
+```{r, download}
+# # Download package tarball from CRAN archive
+# 
+# url <- "https://cran.r-project.org/src/contrib/Archive/StateTrace/StateTrace_1.0-4.tar.gz"
+# pkgFile <- "StateTrace_1.0-4.tar.gz"
+# download.file(url = url, destfile = pkgFile)
+# 
+# # Install dependencies
+# 
+# install.packages(c("fgui"))
+# 
+# # Install package
+# install.packages(pkgs=pkgFile, type="source", repos=NULL)
+# 
+# # Delete package tarball
+# unlink(pkgFile)
+
+```
+
+```{r, test}
+
+tmp <- gather(data, key = state, value = score, afc, named)
+
+gather(data, key = state, score, afc, named) %>%
+  mutate(., trace = 1) %>%
+  write.csv(.,'data.txt')
+
+
+# id = subject
+# state = afc | namded
+# dimension = 
+# trace = condition
+stFirst(staname = 'data.sta', fnams = 'data.txt', extension = 'txt', multiparticipant = TRUE,
+        sep='comma', usecols=c('subject','state','condition','condition','score'))
+
+```
